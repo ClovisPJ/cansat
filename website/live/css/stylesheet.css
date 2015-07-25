@@ -1,0 +1,93 @@
+body{
+  margin:0%;
+  font-family:Oxygen;
+  color: #FFFFFF;
+}
+
+a{
+  color:inherit;
+  text-decoration: none;
+}
+
+#top-bar{
+  position:fixed;
+  margin-top:1%;
+  margin-left:1%;
+  width:30%;
+  z-index:2;
+}
+
+.top-bar-text{
+  margin-left:2%;
+  margin-right:2%;
+  font-weight:bold;
+}
+
+.text{
+  position:relative;
+  text-align:center;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+}
+
+/*formatiing for index.html*/
+
+.pages{
+  position:absolute;
+  width:100%;
+  height:100%;
+}
+
+.text-top{
+  font-size:5em;
+  margin:1%;
+  color: #FF0000;
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+}
+
+.text-main{
+  font-size:6em;
+  margin:1%;
+  color: #FF0000;
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+}
+
+.text-bottom{
+  font-size:2em;
+  margin:1%;
+}
+
+#home{
+  background: url(img/bg-home.jpg);
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color:#000000;
+}
+
+#about{
+  top:100%;
+  background: url(img/bg-about.png);
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color:#454B57;
+}
+
+#team{
+  top:200%;
+  background-color: #65B16A;
+}
+
+#sponsorship{
+  top:300%;
+  background-color: #5BA560;
+}
+
+#work{
+  top:400%;
+  background-color: #4F9754;
+}
