@@ -9,6 +9,11 @@ a{
   text-decoration: none;
 }
 
+a:hover{
+  color:#FF0000;
+  transition-duration: 0.3s;
+}
+
 #top-bar{
   position:fixed;
   margin-top:1%;
@@ -18,6 +23,7 @@ a{
 }
 
 .top-bar-text{
+  display: inline-block;
   margin-left:2%;
   margin-right:2%;
   font-weight:bold;
@@ -26,9 +32,6 @@ a{
 .text{
   position:relative;
   text-align:center;
-  top:50%;
-  left:50%;
-  transform: translate(-50%, -50%);
 }
 
 /*formatiing for index.html*/
@@ -39,9 +42,16 @@ a{
   height:100%;
 }
 
+.body{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  width: 100%;
+}
+
 .text-top{
   font-size:5em;
-  margin:1%;
   color: #FF0000;
   text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
   text-transform: uppercase;
@@ -49,7 +59,6 @@ a{
 
 .text-main{
   font-size:6em;
-  margin:1%;
   color: #FF0000;
   text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
   text-transform: uppercase;
@@ -57,11 +66,16 @@ a{
 
 .text-bottom{
   font-size:2em;
+}
+
+.text{
+  position: relative;
+  text-align:center;
   margin:1%;
 }
 
 #home{
-  background: url(img/bg-home.jpg);
+  background: url("img/bg-home.jpg");
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
@@ -70,7 +84,7 @@ a{
 
 #about{
   top:100%;
-  background: url(img/bg-about.png); /*TODO find bg*/
+  background: url("img/bg-about.png");
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
@@ -150,4 +164,71 @@ a{
 
 .files-list-item-type-folder{
   background-color: #729FCF;
-} 
+}
+
+/*formatting for timeline.html*/
+
+#sections{
+  background-color: #7A7A7A;
+  position:absolute;
+  width:100%;
+  height:100%;
+}
+
+#sections-body{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 70%;
+  overflow: hidden;
+}
+
+#sections-body-title{
+  position: relative;
+  font-size:4em;
+  margin:1%;
+  color: #FF0000;
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+#sections-body-tiles{
+  display: block;
+  position: relative;
+  height: 60%;
+  width: 500%;
+  transition-duration:15s;
+  transition-timing-function: cubic-bezier(1,0,1,1);
+}
+
+#sections-body-tiles:active{
+  transition-duration:15s;
+  transition-timing-function:ease;
+  transform: translateX(-100%);
+}
+
+.tiles{
+  box-shadow: 0 0 0.4em 0.1em #FF0000;
+  position: relative;
+  display: inline-block;
+  width: 5%;
+  height: 90%;
+  margin: 0.2%;
+  background-image: url("img/bg-home.jpg");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.tiles-title{
+  letter-spacing: 0.05em;
+  color: #FFFFFF;
+  font-size: 1.5em;
+  position: absolute;
+  /*transform: translate(-50%, 0);
+  left: 50%;*/
+  left: 1.5%;
+}
