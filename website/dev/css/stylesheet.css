@@ -75,7 +75,9 @@ a:hover{
 }
 
 #home{
+  position:relative;
   background: url("img/bg-home.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/esaKIDSen/SEMI5LDY37H_Technology_1.html*/
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
@@ -83,26 +85,42 @@ a:hover{
 }
 
 #about{
-  top:100%;
-  background: url("img/bg-about.png");
+  position:relative;
+  background: url("img/bg-about.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Space_Engineering_Technology/Galileo_satellite_undergoes_launch_check-up_at_ESTEC*/
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
-  background-color:#454B57;
+  background-color:#0A1E2C;
 }
 
 #team{
-  top:200%;
-  background-color: #65B16A;
+  position:relative;
+  background: url("img/bg-team.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/spaceinimages/Images/2010/04/Electrical_component*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #C5C915;
 }
 
 #sponsorship{
-  top:300%;
+  position:relative;
+  /*background: url("img/bg-sponsorship.jpg");*/
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Operations/Huygens_twin_serves_on_Earth/%28print%29*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
   background-color: #5BA560;
 }
 
 #work{
-  top:400%;
+  position:relative;
+  /*background: url("img/bg-work.jpg");*/
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/gsp/ACT/events/workshops/ws_2015_Apr_30.html*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
   background-color: #4F9754;
 }
 
