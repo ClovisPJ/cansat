@@ -1,0 +1,87 @@
+.pages{
+  position:absolute;
+  width:100%;
+  height:100%;
+}
+
+.body{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  width: 100%;
+}
+
+.text-top{
+  font-size:5em;
+  color: #FF0000;
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+}
+
+.text-main{
+  font-size:6em;
+  color: #FF0000;
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+}
+
+.text-bottom{
+  font-size:2em;
+}
+
+.text{
+  position: relative;
+  text-align:center;
+  margin:1%;
+}
+
+#home{
+  position:relative;
+  background: url("../img/bg-home.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/esaKIDSen/SEMI5LDY37H_Technology_1.html*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color:#000000;
+}
+
+#about{
+  position:relative;
+  background: url("../img/bg-about.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Space_Engineering_Technology/Galileo_satellite_undergoes_launch_check-up_at_ESTEC*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color:#0A1E2C;
+}
+
+#team{
+  position:relative;
+  background: url("../img/bg-team.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/spaceinimages/Images/2010/04/Electrical_component*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #C5C915;
+}
+
+#sponsorship{
+  position:relative;
+  /*background: url("../img/bg-sponsorship.jpg");*/
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Operations/Huygens_twin_serves_on_Earth/%28print%29*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #5BA560;
+}
+
+#work{
+  position:relative;
+  /*background: url("../img/bg-work.jpg");*/
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/gsp/ACT/events/workshops/ws_2015_Apr_30.html*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #4F9754;
+}
