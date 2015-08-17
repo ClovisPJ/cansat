@@ -1,7 +1,8 @@
 <html>
   <head>
     <title>Template</title>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
+    <link rel="stylesheet" type="text/css" href="../css/timeline/research.css">
     <link href="https://fonts.googleapis.com/css?family=Oxygen" rel="stylesheet" type="text/css">
   </head>
   <body>
@@ -23,7 +24,16 @@
       </a>
     </div>
 
-    <article id="">
+    <article id="research">
+      <div id="cdf">
+        <script type="text/javascript" src="http://www.wolfram.com/cdf-player/plugin/v2.1/cdfplugin.js"> 
+        </script>
+        <script type="text/javascript">
+          var cdf = new cdfplugin ();
+          cdf.setDefaultContent ('<a href="http://www.wolfram.com/cdf-player/"><img src="../cdf/Cansat.png"></a>');
+          cdf.embed ('../cdf/Cansat.cdf', 838, 262);
+        </script>
+      </div>
     </article>
 
   </body>
