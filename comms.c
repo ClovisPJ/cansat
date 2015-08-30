@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 
-int matchcode();
+struct HamDist matchcode();
 int hammingdistance();
 
 #if 0
@@ -19,29 +19,60 @@ struct packtm {
 };
 #endif
 
-union changeform {
+struct Data {
   struct tm time;
-  int msg;
+  int type;
+};
+
+union changeform {
+  struct Data data;
+  int values[sizeof(struct Data)/sizeof(int)];
+};
+
+struct HamDist {
+  int code;
+  int dist;
 };
 
 int main() {
-  int x = 0b1011110010011101;
-  printf("this should be: %d\n",matchcode(x));
+  int x = 0b1010010110110111;
 
-  union changeform msg;
+  struct HamDist match;
+  match = matchcode(x);
+
+  printf("Hamming Distance is %d\n",match.dist);
+  printf("and it should be: ");
+  for(int k = 0; k < 16; k++) {
+    printf("%d",(matchcode(x).code>>k)&1);
+  }
+  printf("\n");
+
+  union changeform packet;
+
   time_t rawtime;
   struct tm *timeinfo;
 
   rawtime = time(NULL);
-  msg.time = *localtime( &rawtime);
+  packet.data.time = *localtime( &rawtime);
 
-  timeinfo = &msg.time;
+  timeinfo = &packet.data.time;
   printf("%s",asctime(timeinfo));
+
+  /*for(int o = 0; o < sizeof(struct Data)/sizeof(int); o++) {
+    packet.values[o] = -1;
+  }*/
+
+  for (int i = 0; i < sizeof(union changeform)/sizeof(int); i++) {
+    for (int j = 0; j < sizeof(int)*8; j++) {
+      printf("%d",(packet.values[i]>>j)&1);
+    }
+    printf("\n");
+  }
 
   return 0;
 }
 
-int matchcode(int a) {
+struct HamDist matchcode(int a) {
   int hamsqa[16] =
     {0b1111111111111111,
      0b1010101010101010,
@@ -61,15 +92,17 @@ int matchcode(int a) {
      0b1001011001101001};
   int min = 16;
   int imin = 0;
-  int i = 0;
-  for (i < 16; i++;) {
+  for (int i = 0; i < 15; i++) {
     int hd = hammingdistance(a,hamsqa[i]);
     if (hd < min) {
       min = hd;
       imin = i;
     }
   }
-  return hamsqa[imin];
+  struct HamDist value;
+  value.code = hamsqa[imin];
+  value.dist = min;
+  return value;
 }
 
 int hammingdistance(int a, int b) {
