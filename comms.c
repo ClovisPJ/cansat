@@ -1,9 +1,8 @@
 #include <stdio.h>
-#include <time.h>
-
-int sendMessage();
-int receiveMessage();
-int hammingdistance();
+#include <time.h> 
+#include <stddef.h>
+#include <gsl/gsl_matrix.h>
+#include <math.h>
 
 #if 0
 struct packtm {
@@ -31,29 +30,16 @@ union Changeform {
   char values[sizeof(struct Packet)/sizeof(char)];
 };
 
-int hamsqa[16] =
-  {0b1111111111111111,
-  0b1010101010101010,
-  0b1010101011001100,
-  0b1001100110011001,
-  0b1111000011110000,
-  0b1010010110100101,
-  0b1100001111000011,
-  0b1001011010010110,
-  0b1111111100000000,
-  0b1010101001010101,
-  0b1100110000110011,
-  0b1001100101100110,
-  0b1111000000001111,
-  0b1010010101011010,
-  0b1100001100111100,
-  0b1001011001101001};
+int sendMessage(struct Packet);
+int receiveMessage(int,int);
+int hammingdistance(unsigned long, unsigned long);
+unsigned long *hadamardsquare(int);
+gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
 
 int main() {
 
   clock_t rawtime = time(NULL);
   int type = 1;
-  //int input[] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
   int input[] = {-1,2,-3};
 
   struct Packet pck;
@@ -66,7 +52,9 @@ int main() {
     pck.data[i] = input[i];
   }
 
-  sendMessage(pck);
+  //sendMessage(pck);
+
+  receiveMessage(12,32);
 
   return 0;
 }
@@ -88,45 +76,74 @@ int sendMessage(struct Packet pck) {
     for (int j = 0; j < sizeof(char)*8; j++) {
       printf("%d",(toSend.values[i]>>(7-j))&1);
     }
-    //printf("\n");
-
     char a = toSend.values[i];
-    printf("    %d %d",(a>>4)&15,a&15);
+    printf("    %d",a);
     
-    //int toSend = hamsqa[a-1];
     printf("\n");
   }
   return 0;
 }
 
-int recieveMessage() {
-  int input = 0b1111111100000000;
-  //example input from signal
+int receiveMessage(int hadsqai,int codelen) {
+  if ((hadsqai < 0) || (hadsqai > codelen-1)) {
+    return -1;
+    exit(0);
+  }
+  if ((codelen <= 0) || !((codelen & (~codelen +1)) == codelen)) {
+    return -1; 
+    exit(0);
+  }
 
-  int min = 16;
+  unsigned long *hadsqa;
+  /*for (int i = 0; i < codelen;  i++) {
+    for (int j = codelen; j > 0; j--) {
+      printf("%lu",(hadsqa[i] >> j)&1);
+    }
+
+    printf("    %lu",hadsqa[i]);
+
+    //int toSend = hamsqa[a-1];
+    printf("\n");
+  }*/
+
+  hadsqa = hadamardsquare(codelen);
+
+  unsigned long input = hadsqa[hadsqai];
+  unsigned long error = 0b00000000001001000000000000000000;
+  input ^= error;
+
+  int min = codelen;
   int imin = 0;
-  for (int i = 0; i < 15; i++) {
-    int hd = hammingdistance(input,hamsqa[i]);
+  for (int i = 0; i < codelen; i++) {
+    int hd = hammingdistance(input,hadsqa[i]);
     if (hd < min) {
       min = hd;
       imin = i;
     }
   }
-  int code = hamsqa[imin];
+  unsigned long code = hadsqa[imin];
   int hamdist = min;
 
   printf("Hamming Distance is %d\n",hamdist);
-  printf("and it should be: ");
-  for(int k = 0; k < 16; k++) {
-    printf("%d",(code>>k)&1);
+  printf("code:      ");
+  for(int k = codelen; k > 0; k--) {
+    printf("%lu",(input>>k)&1);
   }
+  printf("    %lu",input);
+
+  printf("\nshould be: ");
+  for(int k = codelen; k > 0; k--) {
+    printf("%lu",(code>>k)&1);
+  }
+  printf("    %lu",code);
+
   printf("\n");
 
   return 0;
 }
 
-int hammingdistance(int a, int b) {
-  int z = a^b;
+int hammingdistance(unsigned long a, unsigned long b) {
+  unsigned long z = a^b;
   int n = 0;
   while (z) {
     if (z&1){
@@ -135,4 +152,68 @@ int hammingdistance(int a, int b) {
     z >>= 1;
   }
   return n;
+}
+
+unsigned long *hadamardsquare(int codelen) {
+  gsl_matrix *init = gsl_matrix_alloc(2,2);
+  init->tda = 2;
+  gsl_matrix_set(init,0,0,1);
+  gsl_matrix_set(init,0,1,1);
+  gsl_matrix_set(init,1,0,1);
+  gsl_matrix_set(init,1,1,-1);
+
+  gsl_matrix *matrixhadsqa = gsl_matrix_alloc(1,1);
+  matrixhadsqa->tda = 1;
+  gsl_matrix_set(matrixhadsqa,0,0,1);
+
+  int rep = log2(codelen);
+
+  for (int i = 1; i <= rep; i++) {
+    matrixhadsqa = KPro(matrixhadsqa,init);
+  }
+
+  unsigned long hadsqa[codelen];
+
+  for (int i = 0; i < codelen; i++) {
+    for (int j = 0; j < codelen; j++) {
+      double value = gsl_matrix_get(matrixhadsqa,i,j);
+      if (value == 1) {
+        hadsqa[i]++;
+      }
+      hadsqa[i] <<= 1;
+    }
+  }
+
+  unsigned long *p;
+  p = hadsqa;
+
+  return p;
+}
+
+/*sourced from https://stackoverflow.com/questions/13722543/efficient-way-to-compute-kronecker-product-of-matrices-with-gsl*/
+
+gsl_matrix *KPro(gsl_matrix *a, gsl_matrix *b) {
+    int i, j, k, l;
+    int m, p, n, q;
+    m = a->size1;
+    p = a->size2;
+    n = b->size1;
+    q = b->size2;
+
+    gsl_matrix *c = gsl_matrix_alloc(m*n, p*q);
+    double da, db;
+
+     for (i = 0; i < m; i++)    {
+          for (j = 0; j < p; j++)   {
+              da = gsl_matrix_get (a, i, j);
+              for (k = 0; k < n; k++)   {
+                  for (l = 0; l < q; l++)   {
+                      db = gsl_matrix_get (b, k, l);
+                      gsl_matrix_set (c, n*i+k, q*j+l, da * db);                
+                  }
+              }
+          }
+      }
+
+    return c;
 }
