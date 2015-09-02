@@ -19,19 +19,22 @@ struct packtm {
 };
 #endif
 
+#pragma pack(push) //pragma is needed to remove padding (extra spacing)
+#pragma pack(1)
 struct Packet {
   struct tm time;
   int type;
   int data[3];
 };
+#pragma pack(pop)
 
 union Changeform {
   struct Packet packet;
   char values[sizeof(struct Packet)/sizeof(char)];
 };
 
-int sendMessage(struct Packet);
-int receiveMessage(int,int);
+int sendMessage(struct Packet,int);
+struct Packet receiveMessage(int);
 int hammingdistance(unsigned long, unsigned long);
 unsigned long *hadamardsquare(int);
 gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
@@ -40,26 +43,26 @@ int main() {
 
   clock_t rawtime = time(NULL);
   int type = 1;
-  int input[] = {-1,2,-3};
+  int input[] = {1,-2,-1};
 
   struct Packet pck;
   pck.time = *localtime(&rawtime);
   pck.type = type;
 
   int len = sizeof(input)/sizeof(input[0]);
-  //pck.data[len];
   for (int i = 0; i < len; i++) {
     pck.data[i] = input[i];
   }
 
-  //sendMessage(pck);
+  //sendMessage(pck,256);
+  //receiveMessage(256);
 
-  receiveMessage(12,32);
+  //sendMessage(receiveMessage(256),256);
 
   return 0;
 }
 
-int sendMessage(struct Packet pck) {
+int sendMessage(struct Packet pck, int codelen) {
 
   union Changeform toSend;
   toSend.packet = pck;
@@ -72,25 +75,54 @@ int sendMessage(struct Packet pck) {
   timeinfo = &toSend.packet.time;
   printf("%s",asctime(timeinfo)); */
 
-  for (int i = 0; i < sizeof(struct Packet)/sizeof(char); i++) {
-    for (int j = 0; j < sizeof(char)*8; j++) {
-      printf("%d",(toSend.values[i]>>(7-j))&1);
-    }
-    char a = toSend.values[i];
-    printf("    %d",a);
-    
-    printf("\n");
+  if ((codelen <= 0) || !((codelen & (~codelen +1)) == codelen)) {
+    return -1; 
+    exit(0);
   }
+
+  unsigned long *hadsqa;
+  hadsqa = hadamardsquare(codelen);
+
+  for (int i = 0; i < sizeof(struct Packet)/(log2(codelen)/8); i++) {
+
+    printf("value to be sent: ");
+    for (int j = log2(codelen)-1; j >= 0; j--) {
+      printf("%d",(toSend.values[i]>>j)&1);
+    }
+    printf("   %d",toSend.values[i]);
+
+    //fake errors
+    unsigned long input = hadsqa[toSend.values[i]];
+    unsigned long error = 0b0;
+    input ^= error;
+
+    printf("\ncode to be sent: ");
+    for(int k = codelen-1; k >= 0; k--) {
+       printf("%lu",(input>>k)&1);
+    }
+    printf("    %lu",input);
+
+    //transmit input
+    
+    printf("\n\n");
+  }
+
+  /*for (int i = 0; i < codelen;  i++) {
+    for (int j = codelen; j > 0; j--) {
+      printf("%lu",(hadsqa[i] >> j)&1);
+    }
+
+    printf("    %lu",hadsqa[i]);
+
+    //int toSend = hamsqa[a-1];
+    printf("\n");
+  }*/
+
   return 0;
 }
 
-int receiveMessage(int hadsqai,int codelen) {
-  if ((hadsqai < 0) || (hadsqai > codelen-1)) {
-    return -1;
-    exit(0);
-  }
+struct Packet receiveMessage(int codelen) {
   if ((codelen <= 0) || !((codelen & (~codelen +1)) == codelen)) {
-    return -1; 
     exit(0);
   }
 
@@ -108,38 +140,51 @@ int receiveMessage(int hadsqai,int codelen) {
 
   hadsqa = hadamardsquare(codelen);
 
-  unsigned long input = hadsqa[hadsqai];
-  unsigned long error = 0b00000000001001000000000000000000;
-  input ^= error;
+  union Changeform toSend;
 
-  int min = codelen;
-  int imin = 0;
-  for (int i = 0; i < codelen; i++) {
-    int hd = hammingdistance(input,hadsqa[i]);
-    if (hd < min) {
-      min = hd;
-      imin = i;
+  for (int i = 0; i < sizeof(struct Packet)/(log2(codelen)/8); i++) {
+
+    //input from transmission
+    unsigned long input = hadsqa[3]; //fake value
+    unsigned long error = 0b00000000001000000000000000000000;
+    input ^= error;
+    
+    int min = codelen;
+    int imin = 0;
+    for (int j = 0; j < codelen; j++) {
+      int hd = hammingdistance(input,hadsqa[j]);
+      if (hd < min) {
+        min = hd;
+        imin = j;
+      }
     }
+    unsigned long code = hadsqa[imin];
+    int hamdist = min;
+
+    printf("Hamming Distance is %d\n",hamdist);
+    /*printf("code:      ");
+    for(int k = codelen; k > 0; k--) {
+      printf("%lu",(input>>k)&1);
+    }
+    printf("    %lu",input);*/
+
+    printf("should be: ");
+    for(int k = codelen-1; k >= 0; k--) {
+      printf("%lu",(code>>k)&1);
+    }
+    printf("    %lu",code);
+
+    printf("\nvalue received is: ");
+    for(int k = log2(codelen)-1; k >= 0; k--) {
+      printf("%d",(imin>>k)&1);
+    }
+    printf("    %d",imin);
+
+    toSend.values[i] = imin;
+
+    printf("\n\n");
   }
-  unsigned long code = hadsqa[imin];
-  int hamdist = min;
-
-  printf("Hamming Distance is %d\n",hamdist);
-  printf("code:      ");
-  for(int k = codelen; k > 0; k--) {
-    printf("%lu",(input>>k)&1);
-  }
-  printf("    %lu",input);
-
-  printf("\nshould be: ");
-  for(int k = codelen; k > 0; k--) {
-    printf("%lu",(code>>k)&1);
-  }
-  printf("    %lu",code);
-
-  printf("\n");
-
-  return 0;
+  return toSend.packet;
 }
 
 int hammingdistance(unsigned long a, unsigned long b) {
