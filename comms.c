@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <gsl/gsl_matrix.h>
 #include <math.h>
+#include <limits.h>
 
 #if 0
 struct packtm {
@@ -36,7 +37,7 @@ union Changeform {
 int sendMessage(struct Packet,int);
 struct Packet receiveMessage(int);
 int hammingdistance(unsigned long, unsigned long);
-unsigned long *hadamardsquare(int);
+unsigned long *hadamard(int);
 gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
 
 int main() {
@@ -54,8 +55,9 @@ int main() {
     pck.data[i] = input[i];
   }
 
-  //sendMessage(pck,256);
-  //receiveMessage(256);
+  //codelen should be a divisor of sizeof(struct Packet)
+  //sendMessage(pck,2);
+  receiveMessage(8);
 
   //sendMessage(receiveMessage(256),256);
 
@@ -67,124 +69,116 @@ int sendMessage(struct Packet pck, int codelen) {
   union Changeform toSend;
   toSend.packet = pck;
 
-/*  for(int o = 0; o < sizeof(struct Packet)/sizeof(char); o++) {
-    toSend.values[o] = 255;
-  }*/
-
 /*  struct tm *timeinfo;
   timeinfo = &toSend.packet.time;
   printf("%s",asctime(timeinfo)); */
 
-  if ((codelen <= 0) || !((codelen & (~codelen +1)) == codelen)) {
-    return -1; 
-    exit(0);
-  }
-
   unsigned long *hadsqa;
-  hadsqa = hadamardsquare(codelen);
+  hadsqa = hadamard(codelen); //codelen here is number of repetions, so max length of input
+  unsigned long input = 0;
 
-  for (int i = 0; i < sizeof(struct Packet)/(log2(codelen)/8); i++) {
-
-    printf("value to be sent: ");
-    for (int j = log2(codelen)-1; j >= 0; j--) {
-      printf("%d",(toSend.values[i]>>j)&1);
-    }
-    printf("   %d",toSend.values[i]);
-
-    //fake errors
-    unsigned long input = hadsqa[toSend.values[i]];
-    unsigned long error = 0b0;
-    input ^= error;
-
-    printf("\ncode to be sent: ");
-    for(int k = codelen-1; k >= 0; k--) {
-       printf("%lu",(input>>k)&1);
-    }
-    printf("    %lu",input);
-
-    //transmit input
-    
-    printf("\n\n");
-  }
-
-  /*for (int i = 0; i < codelen;  i++) {
-    for (int j = codelen; j > 0; j--) {
+  for (int i = 0; i < pow(2,codelen);  i++) {
+    for (int j = pow(2,codelen-1)-1; j >= 0; j--) {
       printf("%lu",(hadsqa[i] >> j)&1);
     }
-
     printf("    %lu",hadsqa[i]);
-
-    //int toSend = hamsqa[a-1];
     printf("\n");
-  }*/
+  }
+
+  for (int i = 0; i < sizeof(struct Packet)/(int)ceil((float)codelen/CHAR_BIT); i++) { //cycles through whole array of chars, even if codelen > CHAR_BIT 
+    for (int j = (int)ceil(CHAR_BIT/(float)codelen)-1; j >= 0; j++) { //cycles through char if codelen < CHAR_BIT
+      input = 0;
+      for (int k = 0; k < (int)ceil((float)codelen/CHAR_BIT); k++) { //cycles through code if codelen > CHAR_BIT
+        input <<= CHAR_BIT;
+        input = toSend.values[i+k];
+      }
+      input >>= j*codelen;
+
+      unsigned long code = hadsqa[input]; //could be wrong data type depending on codelen
+      //fake errors
+      unsigned long error = 0b0;
+      input ^= error;
+
+      printf("input to be sent: ");
+      for(int k = codelen-1; k >= 0; k--) {
+         printf("%lu",(input>>k)&1);
+      }
+      printf("    %lu\n",input);
+
+      printf("code to be sent:  ");
+      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
+         printf("%lu",(code>>k)&1);
+      }
+      printf("    %lu\n",code);
+      //transmit code
+      
+      printf("\n\n");
+    }
+  }
 
   return 0;
 }
 
 struct Packet receiveMessage(int codelen) {
-  if ((codelen <= 0) || !((codelen & (~codelen +1)) == codelen)) {
-    exit(0);
-  }
-
   unsigned long *hadsqa;
-  /*for (int i = 0; i < codelen;  i++) {
-    for (int j = codelen; j > 0; j--) {
-      printf("%lu",(hadsqa[i] >> j)&1);
-    }
+  hadsqa = hadamard(codelen);
 
-    printf("    %lu",hadsqa[i]);
-
-    //int toSend = hamsqa[a-1];
-    printf("\n");
-  }*/
-
-  hadsqa = hadamardsquare(codelen);
-
-  union Changeform toSend;
-
-  for (int i = 0; i < sizeof(struct Packet)/(log2(codelen)/8); i++) {
-
-    //input from transmission
-    unsigned long input = hadsqa[3]; //fake value
-    unsigned long error = 0b00000000001000000000000000000000;
-    input ^= error;
-    
-    int min = codelen;
-    int imin = 0;
-    for (int j = 0; j < codelen; j++) {
-      int hd = hammingdistance(input,hadsqa[j]);
-      if (hd < min) {
-        min = hd;
-        imin = j;
-      }
-    }
-    unsigned long code = hadsqa[imin];
-    int hamdist = min;
-
-    printf("Hamming Distance is %d\n",hamdist);
-    /*printf("code:      ");
-    for(int k = codelen; k > 0; k--) {
-      printf("%lu",(input>>k)&1);
-    }
-    printf("    %lu",input);*/
-
-    printf("should be: ");
-    for(int k = codelen-1; k >= 0; k--) {
-      printf("%lu",(code>>k)&1);
-    }
-    printf("    %lu",code);
-
-    printf("\nvalue received is: ");
-    for(int k = log2(codelen)-1; k >= 0; k--) {
-      printf("%d",(imin>>k)&1);
-    }
-    printf("    %d",imin);
-
-    toSend.values[i] = imin;
-
-    printf("\n\n");
+  union Changeform rawdata;
+  for (int i = 0; i < sizeof(struct Packet)/sizeof(char); i++) {
+    rawdata.values[i] = 255;
   }
-  return toSend.packet;
+
+  unsigned long input;
+
+  for (int i = 0; i < sizeof(struct Packet)/(int)ceil((float)codelen/CHAR_BIT); i++) {
+    for (int j = (int)ceil(CHAR_BIT/(float)codelen); j >= 0; j++) { //cycles through char if codelen < CHAR_BIT
+      input = 0;
+      for (int k = 0; k < (int)ceil((float)codelen/CHAR_BIT); k++) { //cycles through code if codelen > CHAR_BIT
+        input <<= CHAR_BIT;
+        input = rawdata.values[i+k];
+      }
+      input >>= j*codelen;
+
+      unsigned long error = 0b0;
+      input ^= error;
+      
+      int min = pow(2,codelen);
+      int imin = 0;
+      for (int j = 0; j < pow(2,codelen); j++) {
+        int hd = hammingdistance(input,hadsqa[j]);
+        if (hd < min) {
+          min = hd;
+          imin = j;
+        }
+      }
+      unsigned long code = hadsqa[imin];
+      int hamdist = min;
+
+      printf("Hamming Distance is %d\n",hamdist);
+      printf("code:      ");
+      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
+        printf("%lu",(input>>k)&1);
+      }
+      printf("    %lu\n",input);
+
+      printf("should be: ");
+      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
+        printf("%lu",(code>>k)&1);
+      }
+      printf("    %lu\n",code);
+
+      printf("value received is: ");
+      for(int k = codelen-1; k >= 0; k--) {
+        printf("%d",(imin>>k)&1);
+      }
+      printf("    %d\n",imin);
+
+      printf("\n\n");
+
+      rawdata.values[i] = imin;
+    }
+  }
+  return rawdata.packet;
 }
 
 int hammingdistance(unsigned long a, unsigned long b) {
@@ -199,38 +193,64 @@ int hammingdistance(unsigned long a, unsigned long b) {
   return n;
 }
 
-unsigned long *hadamardsquare(int codelen) {
-  gsl_matrix *init = gsl_matrix_alloc(2,2);
-  init->tda = 2;
-  gsl_matrix_set(init,0,0,1);
-  gsl_matrix_set(init,0,1,1);
-  gsl_matrix_set(init,1,0,1);
-  gsl_matrix_set(init,1,1,-1);
+unsigned long *hadamard(int codelen) {
+  gsl_matrix *initTop = gsl_matrix_alloc(2,2);
+  initTop->tda = 2;
+  gsl_matrix_set(initTop,0,0,1); //start of top half with matrix:
+  gsl_matrix_set(initTop,0,1,1); // 1  1
+  gsl_matrix_set(initTop,1,0,1); // 1 -1
+  gsl_matrix_set(initTop,1,1,-1);
 
-  gsl_matrix *matrixhadsqa = gsl_matrix_alloc(1,1);
-  matrixhadsqa->tda = 1;
-  gsl_matrix_set(matrixhadsqa,0,0,1);
+  gsl_matrix *matrixTop = gsl_matrix_alloc(1,1);
+  matrixTop->tda = 1;
+  gsl_matrix_set(matrixTop,0,0,1);
 
-  int rep = log2(codelen);
-
-  for (int i = 1; i <= rep; i++) {
-    matrixhadsqa = KPro(matrixhadsqa,init);
+  for (int i = 0; i < codelen-1; i++) { //codelen is -1 as t&b allow *2 the codes
+    matrixTop = KPro(matrixTop,initTop);
   }
 
-  unsigned long hadsqa[codelen];
+  gsl_matrix *initBottom = gsl_matrix_alloc(2,2);
+  initBottom->tda = 2;
+  gsl_matrix_set(initBottom,0,0,-1); //start of bottom half with matrix:
+  gsl_matrix_set(initBottom,0,1,-1); // -1 -1
+  gsl_matrix_set(initBottom,1,0,-1); // -1  1
+  gsl_matrix_set(initBottom,1,1,1);
 
-  for (int i = 0; i < codelen; i++) {
-    for (int j = 0; j < codelen; j++) {
-      double value = gsl_matrix_get(matrixhadsqa,i,j);
-      if (value == 1) {
-        hadsqa[i]++;
+  gsl_matrix *matrixBottom = gsl_matrix_alloc(1,1);
+  matrixBottom->tda = 1;
+  gsl_matrix_set(matrixBottom,0,0,1);
+
+  for (int i = 0; i < codelen-1; i++) {
+    matrixBottom = KPro(matrixBottom,initBottom);
+  }
+
+  unsigned long *hadamard  = (unsigned long*) malloc(sizeof(unsigned long)*pow(2,codelen));
+  double value;
+
+  for (int i = 0; i < pow(2,codelen); i++) {
+    *(hadamard+i) = 0;
+    for (int j = 0; j < pow(2,codelen-1); j++) {
+      *(hadamard+i) <<= 1;
+      if (i < pow(2,codelen-1)) {
+        value = gsl_matrix_get(matrixTop,i,j);
+      } else {
+        value = gsl_matrix_get(matrixBottom,i-pow(2,codelen-1),j);
       }
-      hadsqa[i] <<= 1;
+      if (value == 1) {
+        *(hadamard+i) += 1;
+        //printf("1");
+      //} else {
+      //  printf("0");
+      }
     }
+    //printf(" %lu ",*(hadamard+i));
+    //printf("\n");
   }
+  //printf("\n");
+  //printf("\n");
 
   unsigned long *p;
-  p = hadsqa;
+  p = hadamard;
 
   return p;
 }
