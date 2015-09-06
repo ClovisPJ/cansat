@@ -29,7 +29,7 @@ a:hover{
 
 .top-bar-text:hover{
   transition-duration: 0.3s;
-  color:#FF0000;
+  color: #2D74FF; /*her majesty's blue*/
   text-decoration: none;
 }
 
