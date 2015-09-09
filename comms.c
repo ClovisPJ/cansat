@@ -31,7 +31,7 @@ struct Packet {
 
 union Changeform {
   struct Packet packet;
-  char values[sizeof(struct Packet)/sizeof(char)];
+  unsigned char values[sizeof(struct Packet)/sizeof(char)];
 };
 
 int sendMessage(struct Packet,int);
@@ -39,6 +39,7 @@ struct Packet receiveMessage(int);
 int hammingdistance(unsigned long, unsigned long);
 unsigned long *hadamard(int);
 gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
+int printbin(unsigned long);
 
 int main() {
 
@@ -56,8 +57,8 @@ int main() {
   }
 
   //codelen should be a divisor of sizeof(struct Packet)
-  //sendMessage(pck,2);
-  receiveMessage(8);
+  sendMessage(pck,6);
+  //receiveMessage(4);
 
   //sendMessage(receiveMessage(256),256);
 
@@ -68,118 +69,85 @@ int sendMessage(struct Packet pck, int codelen) {
 
   union Changeform toSend;
   toSend.packet = pck;
+  for (int i = 0; i < sizeof(struct Packet); i++) {
+    toSend.values[i] = 255;
+  }
+
+  unsigned long *had;
+  had = hadamard(codelen); //codelen here is number of repetions, so max length of input
+  int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
+
+  struct {
+    unsigned char bit : 1;
+  } bits[sizeof(struct Packet)*CHAR_BIT];
+
+  for (int i = 0; i < sizeof(struct Packet); i++) {
+    for (int j = CHAR_BIT-1; j >= 0; j--) {
+      bits[i*CHAR_BIT+(CHAR_BIT-(j+1))].bit = (toSend.values[i] >> j)&1;
+    }
+  }
+
+  for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
+    printf("%d",bits[i].bit);
+  }
+  printf("\n");
+  printf("\n");
+  unsigned long unencoded[pckcodes];
+  
+  for (int i = 0; i < pckcodes; i++) {
+    unencoded[i] = 0;
+    for (int j = 0; j < codelen; j++) {
+      unencoded[i] <<= 1;
+      unencoded[i] += bits[i*codelen+j].bit;
+    }
+  }
+
+  for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
+    printbin(unencoded[i]);
+    printf("\n");
+  }
+  printf("\n");
+  printf("\n");
+  unsigned long encoded[pckcodes];
+
+  for (int i = 0; i < pckcodes; i++) {
+    encoded[i] = 0;
+    encoded[i] = had[unencoded[i]];
+  }
+  for (int i = 0; i < sizeof(encoded)/sizeof(encoded[0]); i++) {
+    printbin(encoded[i]);
+    printf("\n");
+  }
+  printf("\n");
+  printf("\n");
 
 /*  struct tm *timeinfo;
   timeinfo = &toSend.packet.time;
   printf("%s",asctime(timeinfo)); */
 
-  unsigned long *hadsqa;
-  hadsqa = hadamard(codelen); //codelen here is number of repetions, so max length of input
-  unsigned long input = 0;
-
-  for (int i = 0; i < pow(2,codelen);  i++) {
-    for (int j = pow(2,codelen-1)-1; j >= 0; j--) {
-      printf("%lu",(hadsqa[i] >> j)&1);
-    }
-    printf("    %lu",hadsqa[i]);
-    printf("\n");
-  }
-
-  for (int i = 0; i < sizeof(struct Packet)/(int)ceil((float)codelen/CHAR_BIT); i++) { //cycles through whole array of chars, even if codelen > CHAR_BIT 
-    for (int j = (int)ceil(CHAR_BIT/(float)codelen)-1; j >= 0; j++) { //cycles through char if codelen < CHAR_BIT
-      input = 0;
-      for (int k = 0; k < (int)ceil((float)codelen/CHAR_BIT); k++) { //cycles through code if codelen > CHAR_BIT
-        input <<= CHAR_BIT;
-        input = toSend.values[i+k];
-      }
-      input >>= j*codelen;
-
-      unsigned long code = hadsqa[input]; //could be wrong data type depending on codelen
-      //fake errors
-      unsigned long error = 0b0;
-      input ^= error;
-
-      printf("input to be sent: ");
-      for(int k = codelen-1; k >= 0; k--) {
-         printf("%lu",(input>>k)&1);
-      }
-      printf("    %lu\n",input);
-
-      printf("code to be sent:  ");
-      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
-         printf("%lu",(code>>k)&1);
-      }
-      printf("    %lu\n",code);
-      //transmit code
-      
-      printf("\n\n");
-    }
-  }
-
   return 0;
 }
-
+#if 0
 struct Packet receiveMessage(int codelen) {
   unsigned long *hadsqa;
   hadsqa = hadamard(codelen);
+  struct ChangeForm data
 
-  union Changeform rawdata;
-  for (int i = 0; i < sizeof(struct Packet)/sizeof(char); i++) {
-    rawdata.values[i] = 255;
-  }
-
-  unsigned long input;
-
-  for (int i = 0; i < sizeof(struct Packet)/(int)ceil((float)codelen/CHAR_BIT); i++) {
-    for (int j = (int)ceil(CHAR_BIT/(float)codelen); j >= 0; j++) { //cycles through char if codelen < CHAR_BIT
-      input = 0;
-      for (int k = 0; k < (int)ceil((float)codelen/CHAR_BIT); k++) { //cycles through code if codelen > CHAR_BIT
-        input <<= CHAR_BIT;
-        input = rawdata.values[i+k];
-      }
-      input >>= j*codelen;
-
-      unsigned long error = 0b0;
-      input ^= error;
-      
-      int min = pow(2,codelen);
-      int imin = 0;
-      for (int j = 0; j < pow(2,codelen); j++) {
-        int hd = hammingdistance(input,hadsqa[j]);
-        if (hd < min) {
-          min = hd;
-          imin = j;
-        }
-      }
-      unsigned long code = hadsqa[imin];
-      int hamdist = min;
-
-      printf("Hamming Distance is %d\n",hamdist);
-      printf("code:      ");
-      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
-        printf("%lu",(input>>k)&1);
-      }
-      printf("    %lu\n",input);
-
-      printf("should be: ");
-      for(int k = pow(2,codelen-1)-1; k >= 0; k--) {
-        printf("%lu",(code>>k)&1);
-      }
-      printf("    %lu\n",code);
-
-      printf("value received is: ");
-      for(int k = codelen-1; k >= 0; k--) {
-        printf("%d",(imin>>k)&1);
-      }
-      printf("    %d\n",imin);
-
-      printf("\n\n");
-
-      rawdata.values[i] = imin;
+  int min = pow(2,codelen);
+  int imin = 0;
+  for (int k = 0; k < pow(2,codelen); k++) {
+    int hd = hammingdistance(input,*(hadsqa+k));
+    if (hd < min) {
+      min = hd;
+      imin = k;
     }
   }
-  return rawdata.packet;
+  unsigned long code = *(hadsqa+imin);
+  int hamdist = min;
+
+  return data.packet;
 }
+#endif
 
 int hammingdistance(unsigned long a, unsigned long b) {
   unsigned long z = a^b;
@@ -238,16 +206,16 @@ unsigned long *hadamard(int codelen) {
       }
       if (value == 1) {
         *(hadamard+i) += 1;
-        //printf("1");
-      //} else {
-      //  printf("0");
+        printf("1");
+      } else {
+        printf("0");
       }
     }
     //printf(" %lu ",*(hadamard+i));
-    //printf("\n");
+    printf("\n");
   }
-  //printf("\n");
-  //printf("\n");
+  printf("\n");
+  printf("\n");
 
   unsigned long *p;
   p = hadamard;
@@ -281,4 +249,15 @@ gsl_matrix *KPro(gsl_matrix *a, gsl_matrix *b) {
       }
 
     return c;
+}
+
+int printbin (long unsigned dec) {
+  for (int i = (CHAR_BIT*sizeof(long unsigned))-1; i >= 0; i--) {
+    if (((dec>>i)&1)==1) {
+      printf("1");
+    } else {
+      printf("0");
+    }
+  }
+  return 0;
 }
