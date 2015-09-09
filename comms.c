@@ -56,11 +56,10 @@ int main() {
     pck.data[i] = input[i];
   }
 
-  //codelen should be a divisor of sizeof(struct Packet)
-  sendMessage(pck,6);
-  //receiveMessage(4);
-
-  //sendMessage(receiveMessage(256),256);
+  // 6 <= codelen <= 2 
+  //TODO: allow 7 (should work as fits lu, and allow 1. broken due to codes generated incorrectly
+  //sendMessage(pck,2);
+  receiveMessage(2);
 
   return 0;
 }
@@ -127,27 +126,77 @@ int sendMessage(struct Packet pck, int codelen) {
 
   return 0;
 }
-#if 0
-struct Packet receiveMessage(int codelen) {
-  unsigned long *hadsqa;
-  hadsqa = hadamard(codelen);
-  struct ChangeForm data
 
-  int min = pow(2,codelen);
-  int imin = 0;
-  for (int k = 0; k < pow(2,codelen); k++) {
-    int hd = hammingdistance(input,*(hadsqa+k));
-    if (hd < min) {
-      min = hd;
-      imin = k;
+struct Packet receiveMessage(int codelen) {
+  union Changeform received;
+  int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
+
+  unsigned long encoded[pckcodes];
+  unsigned long *had;
+  had = hadamard(codelen); //codelen is length of words, generating hd with enough for that
+
+  for (int i = 0; i < pckcodes; i++) {
+    encoded[i] = 0;
+    encoded[i] = had[(int)pow(2,codelen)-1]; //from receiver
+  }
+  for (int i = 0; i < sizeof(encoded)/sizeof(encoded[0]); i++) {
+    printbin(encoded[i]);
+    printf("\n");
+  }
+  printf("\n");
+  printf("\n");
+
+  unsigned long unencoded[pckcodes];
+  
+  for (int i = 0; i < pckcodes; i++) {
+    int min = pow(2,codelen-1);
+    int imin = 0;
+    for (int k = 0; k < pow(2,codelen); k++) {
+      int hd = hammingdistance(encoded[i],had[k]);
+      //printf("\nhd = %d",hd);
+      if (hd < min) {
+        min = hd;
+        imin = k;
+      }
+    }
+    unencoded[i] = 0;
+    unencoded[i] = imin;
+    printf("hamdist: %d\n",min);
+  }
+
+  for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
+    printbin(unencoded[i]);
+    printf("\n");
+  }
+  printf("\n");
+  printf("\n");
+
+  struct {
+    unsigned char bit : 1;
+  } bits[sizeof(struct Packet)*CHAR_BIT];
+
+  for (int i = 0; i < pckcodes; i++) {
+      for (int j = codelen-1; j >= 0 ; j--) {
+        bits[codelen*i+(codelen-(j+1))].bit = (unencoded[i]>>j)&1;
+      }
+  }
+
+  for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
+    printf("%d",bits[i].bit);
+  }
+  printf("\n");
+  printf("\n");
+
+  for (int i = 0; i < sizeof(received.values)/sizeof(received.values[0]); i++) {
+    for (int j = CHAR_BIT-1; j >= 0; j--) {
+      received.values[i] <<= 1;
+      received.values[i] += bits[i*CHAR_BIT+j].bit;
     }
   }
-  unsigned long code = *(hadsqa+imin);
-  int hamdist = min;
 
-  return data.packet;
+  return received.packet;
 }
-#endif
+
 
 int hammingdistance(unsigned long a, unsigned long b) {
   unsigned long z = a^b;
