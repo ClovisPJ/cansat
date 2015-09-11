@@ -46,7 +46,7 @@
 }
 
 #about{
-  background: url("../img/bg-about.png");
+  background: url("../img/bg-about.jpg");
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
@@ -55,26 +55,26 @@
 
 #team{
   background: url("../img/bg-team.jpg");
+  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Space_Engineering_Technology/Galileo_satellite_undergoes_launch_check-up_at_ESTEC*/
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #181A24;
+}
+
+#sponsorship{
+  background: url("../img/bg-sponsorship.jpg");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #4C5D69;
+}
+
+#work{
+  background: url("../img/bg-work.jpg");
   /*image courtesy of ESA (European Space Agency): http://www.esa.int/spaceinimages/Images/2010/04/Electrical_component*/
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
   background-color: #C5C915;
-}
-
-#sponsorship{
-  background: url("../img/bg-sponsorship.jpg");
-  /*image courtesy of ESA (European Space Agency): http://www.esa.int/Our_Activities/Space_Engineering_Technology/Galileo_satellite_undergoes_launch_check-up_at_ESTEC*/
-  background-size: auto 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: #0A1E2C;
-}
-
-#work{
-  background: url("../img/bg-work.jpg");
-  background-size: auto 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: #4C5D69;
 }
