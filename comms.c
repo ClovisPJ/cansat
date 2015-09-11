@@ -61,6 +61,8 @@ int main() {
   //sendMessage(pck,2);
   receiveMessage(2);
 
+  //sendMessage(receiveMessage(256),256);
+
   return 0;
 }
 
