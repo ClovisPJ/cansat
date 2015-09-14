@@ -4,6 +4,7 @@
 #include <gsl/gsl_matrix.h>
 #include <math.h>
 #include <limits.h>
+#include "mraa.h"
 
 #if 0
 struct packtm {
@@ -34,14 +35,16 @@ union Changeform {
   unsigned char values[sizeof(struct Packet)/sizeof(char)];
 };
 
-int sendMessage(struct Packet,int);
-struct Packet receiveMessage(int);
+int sendEncodedMessage(struct Packet,int);
+struct Packet receiveEncodedMessage(int);
+int sendMessage(struct Packet);
+struct Packet receiveMessage();
 int hammingdistance(unsigned long, unsigned long);
 unsigned long *hadamard(int);
 gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
 int printbin(unsigned long);
 
-int main() {
+int main(int argc, char *argv[])
 
   clock_t rawtime = time(NULL);
   int type = 1;
@@ -63,10 +66,39 @@ int main() {
 
   //sendMessage(receiveMessage(256),256);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
-int sendMessage(struct Packet pck, int codelen) {
+int sendMessage(struct Packet pck) {
+  mraa_uart_context uart;
+  uart = mraa_uart_init(0);
+  if (uart == NULL) {
+    fprintf(stderr, "UART failed to setup\n");
+    return EXIT_FAILURE;
+  }
+  union Changeform toSend;
+  toSend.packet = pck;
+  mraa_uart_write(uart, toSend.values, sizeof(toSend.values));
+  mraa_uart_stop(uart);
+  mraa_deinit();
+  return EXIT_SUCCESS;
+}
+
+struct Packet receiveMessage() {
+  mraa_uart_context uart;
+  uart = mraa_uart_init(0);
+  if (uart == NULL) {
+    fprintf(stderr, "UART failed to setup\n");
+    return EXIT_FAILURE;
+  }
+  union Changeform received;
+  mraa_uart_read(uart, received.values, sizeof(received.values));
+  mraa_uart_stop(uart);
+  mraa_deinit();
+  return received.packet;
+}
+
+int sendEncodedMessage(struct Packet pck, int codelen) {
 
   union Changeform toSend;
   toSend.packet = pck;
@@ -75,26 +107,25 @@ int sendMessage(struct Packet pck, int codelen) {
   }
 
   unsigned long *had;
-  had = hadamard(codelen); //codelen here is number of repetions, so max length of input
+  had = hadamard(codelen); //codelen is max length of input
   int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
 
   struct {
     unsigned char bit : 1;
   } bits[sizeof(struct Packet)*CHAR_BIT];
-
   for (int i = 0; i < sizeof(struct Packet); i++) {
     for (int j = CHAR_BIT-1; j >= 0; j--) {
       bits[i*CHAR_BIT+(CHAR_BIT-(j+1))].bit = (toSend.values[i] >> j)&1;
     }
   }
 
-  for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
+  /*for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
     printf("%d",bits[i].bit);
   }
   printf("\n");
-  printf("\n");
+  printf("\n");*/
+
   unsigned long unencoded[pckcodes];
-  
   for (int i = 0; i < pckcodes; i++) {
     unencoded[i] = 0;
     for (int j = 0; j < codelen; j++) {
@@ -103,50 +134,76 @@ int sendMessage(struct Packet pck, int codelen) {
     }
   }
 
-  for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
+  /*for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
     printbin(unencoded[i]);
     printf("\n");
   }
   printf("\n");
-  printf("\n");
-  unsigned long encoded[pckcodes];
+  printf("\n");*/
 
+  union {
+    unsigned long codes[pckcodes];
+    unsigned char values[sizeof(unsigned long)*pckcodes];
+  } encoded;
   for (int i = 0; i < pckcodes; i++) {
-    encoded[i] = 0;
-    encoded[i] = had[unencoded[i]];
+    encoded.codes[i] = 0;
+    encoded.codes[i] = had[unencoded.codes[i]];
   }
-  for (int i = 0; i < sizeof(encoded)/sizeof(encoded[0]); i++) {
-    printbin(encoded[i]);
+  /*for (int i = 0; i < sizeof(encoded.codes)/sizeof(encoded.codes[0]); i++) {
+    printbin(encoded.codes[i]);
     printf("\n");
   }
   printf("\n");
-  printf("\n");
+  printf("\n");*/
+
+  mraa_uart_context uart;
+  uart = mraa_uart_init(0);
+  if (uart == NULL) {
+    fprintf(stderr, "UART failed to setup\n");
+    return EXIT_FAILURE;
+  }
+  mraa_uart_write(uart, encoded.values, sizeof(encoded.values));
+  mraa_uart_stop(uart);
+  mraa_deinit();
 
 /*  struct tm *timeinfo;
   timeinfo = &toSend.packet.time;
   printf("%s",asctime(timeinfo)); */
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 struct Packet receiveMessage(int codelen) {
   union Changeform received;
   int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
 
-  unsigned long encoded[pckcodes];
+  union {
+    unsigned long codes[pckcodes];
+    unsigned char values[sizeof(unsigned long)*pckcodes];
+  } encoded;
   unsigned long *had;
-  had = hadamard(codelen); //codelen is length of words, generating hd with enough for that
+  had = hadamard(codelen); //codelen is max length of input
 
-  for (int i = 0; i < pckcodes; i++) {
-    encoded[i] = 0;
-    encoded[i] = had[(int)pow(2,codelen)-1]; //from receiver
+  mraa_uart_context uart;
+  uart = mraa_uart_init(0);
+  if (uart == NULL) {
+    fprintf(stderr, "UART failed to setup\n");
+    return EXIT_FAILURE;
   }
-  for (int i = 0; i < sizeof(encoded)/sizeof(encoded[0]); i++) {
-    printbin(encoded[i]);
+  mraa_uart_read(uart, encoded.values, sizeof(received.values));
+  mraa_uart_stop(uart);
+  mraa_deinit();
+
+  /*for (int i = 0; i < pckcodes; i++) {
+    encoded.codes[i] = 0;
+    encoded.codes[i] = had[(int)pow(2,codelen)-1]; //fake from receiver
+  }*/
+  /*for (int i = 0; i < sizeof(encoded.codes)/sizeof(encoded.codes[0]); i++) {
+    printbin(encoded.codes[i]);
     printf("\n");
   }
   printf("\n");
-  printf("\n");
+  printf("\n");*/
 
   unsigned long unencoded[pckcodes];
   
@@ -154,7 +211,7 @@ struct Packet receiveMessage(int codelen) {
     int min = pow(2,codelen-1);
     int imin = 0;
     for (int k = 0; k < pow(2,codelen); k++) {
-      int hd = hammingdistance(encoded[i],had[k]);
+      int hd = hammingdistance(encoded.codes[i],had[k]);
       //printf("\nhd = %d",hd);
       if (hd < min) {
         min = hd;
@@ -163,15 +220,15 @@ struct Packet receiveMessage(int codelen) {
     }
     unencoded[i] = 0;
     unencoded[i] = imin;
-    printf("hamdist: %d\n",min);
+    //printf("hamdist: %d\n",min);
   }
 
-  for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
+  /*for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
     printbin(unencoded[i]);
     printf("\n");
   }
   printf("\n");
-  printf("\n");
+  printf("\n");*/
 
   struct {
     unsigned char bit : 1;
@@ -183,11 +240,11 @@ struct Packet receiveMessage(int codelen) {
       }
   }
 
-  for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
+  /*for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
     printf("%d",bits[i].bit);
   }
   printf("\n");
-  printf("\n");
+  printf("\n");*/
 
   for (int i = 0; i < sizeof(received.values)/sizeof(received.values[0]); i++) {
     for (int j = CHAR_BIT-1; j >= 0; j--) {
@@ -310,5 +367,5 @@ int printbin (long unsigned dec) {
       printf("0");
     }
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
