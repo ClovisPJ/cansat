@@ -44,7 +44,7 @@ unsigned long *hadamard(int);
 gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
 int printbin(unsigned long);
 
-int main(int argc, char *argv[])
+int main() {
 
   clock_t rawtime = time(NULL);
   int type = 1;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   // 6 <= codelen <= 2 
   //TODO: allow 7 (should work as fits lu, and allow 1. broken due to codes generated incorrectly
   //sendMessage(pck,2);
-  receiveMessage(2);
+  receiveMessage();
 
   //sendMessage(receiveMessage(256),256);
 
@@ -89,7 +89,7 @@ struct Packet receiveMessage() {
   uart = mraa_uart_init(0);
   if (uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
   }
   union Changeform received;
   mraa_uart_read(uart, received.values, sizeof(received.values));
@@ -147,7 +147,7 @@ int sendEncodedMessage(struct Packet pck, int codelen) {
   } encoded;
   for (int i = 0; i < pckcodes; i++) {
     encoded.codes[i] = 0;
-    encoded.codes[i] = had[unencoded.codes[i]];
+    encoded.codes[i] = had[unencoded[i]];
   }
   /*for (int i = 0; i < sizeof(encoded.codes)/sizeof(encoded.codes[0]); i++) {
     printbin(encoded.codes[i]);
@@ -173,7 +173,7 @@ int sendEncodedMessage(struct Packet pck, int codelen) {
   return EXIT_SUCCESS;
 }
 
-struct Packet receiveMessage(int codelen) {
+struct Packet receiveEncodedMessage(int codelen) {
   union Changeform received;
   int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
 
@@ -188,7 +188,7 @@ struct Packet receiveMessage(int codelen) {
   uart = mraa_uart_init(0);
   if (uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
   }
   mraa_uart_read(uart, encoded.values, sizeof(received.values));
   mraa_uart_stop(uart);
