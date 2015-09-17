@@ -2,6 +2,7 @@
   width:100%;
   height:100%;
   overflow:hidden;
+  position: relative;
 }
 
 .body{
@@ -34,6 +35,43 @@
   position: relative;
   text-align:center;
   margin:1%;
+}
+
+.next{
+  position: absolute;
+  display: block;
+  width: 5%;
+  height: 7.5%;
+  left: 47.5%;
+  right: 47.5%;
+  bottom: 2%;
+  text-align: center;
+  background: url("../img/downarrow.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  outline: 0;
+}
+
+.next:hover{
+  background: url("../img/downarrowhover.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#work-next{
+  background: url("../img/uparrow.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#work-next:hover{
+  background: url("../img/uparrowhover.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 #home{

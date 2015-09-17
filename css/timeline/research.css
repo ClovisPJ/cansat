@@ -1,12 +1,37 @@
 #research{
-  background-color: #93DE57;
-  height: 100%;
+  background-color: #FFFBB3;
+  height: 150%;
+  overflow: hidden;
 }
 
-#cdf{
+#research-body{
   position: relative;
-  width: 51%;
-  left: 25%;
-  height: 48%;
-  top: 30%;
+  transform: translate(0, -50%);
+  top: 50%;
+  max-height: 150%;
+  width: 55%;
+  left: 22.5%;
+  right: 22.5%;
+}
+
+#research-body-title{
+  font-size:4em;
+  margin:1%;
+  color: #2D74FF; /*her majesty's blue*/
+  text-shadow: 0.02em 0.02em #FFFFFF, 0.02em -0.02em #FFFFFF, -0.02em -0.02em #FFFFFF, -0.02em 0.02em #FFFFFF, 0 0.02em #FFFFFF, 0 -0.02em #FFFFFF, 0.02em 0 #FFFFFF, -0.02em 0 #FFFFFF;
+  text-transform: uppercase;
+  text-align:center;
+}
+
+#research-body-cdf{
+  position: relative;
+  transform: translate(-50%, 0);
+  left: 50%;
+  width: 838px;
+  height: 262px;
+}
+
+#research-body-text{
+  position: relative;
+  color: #000000;
 }
