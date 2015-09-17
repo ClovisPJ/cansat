@@ -1,6 +1,7 @@
 #research{
   background-color: #FFFBB3;
   height: 150%;
+  overflow: hidden;
 }
 
 #research-body{

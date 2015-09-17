@@ -37,7 +37,7 @@
   margin:1%;
 }
 
-.body-next{
+.next{
   position: absolute;
   display: block;
   width: 5%;
@@ -50,9 +50,28 @@
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
+  outline: 0;
 }
 
-.body-next:hover{
+.next:hover{
+  background: url("../img/downarrowhover.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#work-next{
+  background: url("../img/uparrow.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#work-next:hover{
+  background: url("../img/uparrowhover.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 #home{
