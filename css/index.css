@@ -31,6 +31,10 @@
   font-size:2em;
 }
 
+.email{
+  text-decoration: underline;
+}
+
 .text{
   position: relative;
   text-align:center;
