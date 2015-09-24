@@ -31,7 +31,7 @@
   font-size:2em;
 }
 
-.email{
+.extern{
   text-decoration: underline;
 }
 
@@ -104,8 +104,8 @@
   background-color: #181A24;
 }
 
-#sponsorship{
-  background: url("../img/bg-sponsorship.jpg");
+#contact{
+  background: url("../img/bg-contact.jpg");
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;

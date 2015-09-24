@@ -17,20 +17,39 @@ a:hover{
   position:fixed;
   margin:1%;
   width:98%;
+  height:8%;
   z-index:1;
 }
 
 .top-bar-text{
+  float : left;
   display: inline-block;
-  margin-left:0.6%;
-  margin-right:0.6%;
   font-weight:bold;
+  text-align: center;
+  margin-left:0.5%;
+  margin-right:0.5%;
+  height: 50%;
+  overflow: hidden;
+  border-radius: 0.2em;
 }
 
 .top-bar-text:hover{
   transition-duration: 0.3s;
   color: #2D74FF; /*her majesty's blue*/
   text-decoration: none;
+  background-color: #FFFFFF;
+}
+
+.top-bar-text-link{
+  display: block;
+  margin-top: 0.3em;
+  margin-bottom: 0.7em;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+#top-bar-about:hover{
+  height: 100%;
 }
 
 .text{
@@ -40,7 +59,12 @@ a:hover{
 
 #footer{
   background-color: #363636;
-  padding: 1%;
+  padding: 0.6%;
+  bottom: 0;
+}
+
+#footer:active{
+  display: none;
 }
 
 #footer-copyright{
