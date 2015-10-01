@@ -1,10 +1,14 @@
 #research{
-  background-color: #282828;
+  background-color: #FFFBB3;
+  height: 150%;
   overflow: hidden;
 }
 
 #research-body{
   position: relative;
+  transform: translate(0, -50%);
+  top: 50%;
+  max-height: 150%;
   width: 55%;
   left: 22.5%;
   right: 22.5%;
@@ -29,5 +33,5 @@
 
 #research-body-text{
   position: relative;
-  color: #FFFFFF;
+  color: #000000;
 }

@@ -1,3 +1,109 @@
 <html>
-<meta http-equiv="refresh" content="0; URL='http://clovispj.github.io/cansat/home.html'" />
+  <head>
+    <title>Zysk Aeronautics</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link href="https://fonts.googleapis.com/css?family=Oxygen" rel="stylesheet" type="text/css">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script>
+//http://www.learningjquery.com/2007/10/improved-animated-scrolling-script-for-same-page-links
+$(function() {
+  $('a[href*=#]:not([href=#])').click(function() {
+    if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+      var target = $(this.hash);
+      target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+      if (target.length) {
+        $('html,body').animate({
+          scrollTop: target.offset().top
+        }, 1000);
+        return false;
+      }
+    }
+  });
+});
+</script>
+  </head>
+  <body>
+    <div id="top-bar">
+      <div class="top-bar-text" id="top-bar-home">
+        <a href="#home" class="top-bar-text-link">HOME</a>
+      </div>
+      <div class="top-bar-text" id="top-bar-about">
+        <a href="#about" class="top-bar-text-link">ABOUT</a>
+        <a href="#team" class="top-bar-text-link">TEAM</a>
+      </div>
+      <div class="top-bar-text" id="top-bar-contact">
+        <a href="#contact" class="top-bar-text-link">CONTACT</a>
+      </div>
+      <div class="top-bar-text" id="top-bar-work">
+        <a href="#work" class="top-bar-text-link">WORK</a>
+      </div>
+    </div>
+
+    <article id="home" class="pages">
+    <div id="home-body" class="body">
+      <h1 id="home-body-top" class="text-top text">CANSAT 2016</h1>
+      <h2 id="home-body-main" class="text-main text">ZYSK AERONAUTICS</h2>
+    </div>
+    <a class="next" href="#about"></a>
+    </article>
+
+    <article id="about" class="pages">
+    <div id="about-body" class="body">
+      <h1 id="about-body-top" class="text-top text">ZYSK</h1>
+      <h3 id="about-body-bottom" class="text-bottom text">
+        A satelite squeezed into a can<br></br>Designed, manufactured and programmed by Oundle school students</h3>
+    </div>
+    <a class="next" href="#team"></a>
+    </article>
+
+    <article id="team" class="pages">
+    <div id="team-body" class="body">
+      <h1 id="team-body-top" class="text-top text">THE TEAM</h1>
+      <h3 id="team-body-bottom" class="text-bottom text">
+        Clovis Parker-Jervis<br>
+        <small>Programming, Maths</small><br><br>
+        Cory Flanagan<br>
+        <small>Organisation, Design</small><br><br>
+        Ming Ting Lau<br>
+        <small>Electronics</small><br><br>
+        Jemima Burgess<br>
+        <small>Aerodynamics</small><br>
+      </h3>
+    </div>
+    <a class="next" href="#contact"></a>
+    </article>
+
+    <article id="contact" class="pages">
+    <div id="contact-body" class="body">
+      <h1 id="contact-body-top" class="text-top text">Contact us</h1>
+      <h3 id="contact-body-bottom" class="text-bottom text">We are looking for companies or universites to help us in resources or funding<br><br>Email 
+        <a class="extern" href="mailto:%70%61%72%6b%65%72%6a%65%72%76%69%73%2e%63%67%62%40%6f%75%6e%64%6c%65%73%63%68%6f%6f%6c%2e%6f%72%67%2e%75%6b">Clovis</a><br>
+      Or contact us on <a class="extern" href=http://twitter.com/zyskaeronautics>Twitter</a>
+      </h3>
+    </div>
+    <a class="next" href="#work"><br></a>
+    </article>
+
+    <article id="work" class="pages">
+    <div id="work-body" class="body">
+      <h1 id="work-body-top" class="text-top text">Our Work</h1>
+      <h3 id="work-body-bottom" class="text-bottom text">
+        <a class="work-body-bottom-links" href="timeline.html">Timeline</a><br></br>
+        <!--a class="work-body-bottom-links" href="files.html">Files</a><br></br-->
+      </h3>
+    </div>
+    <a class="next" id="work-next" href="#home"><br></a>
+    </article>
+
+    <article id="footer">
+      <div id="footer-copyright">
+        &copy; 2015 Zysk Aeronautics. All rights reserved. Images courtesy of <a class="extern" href="http://www.esa.int/">ESA (European Space Agency)</a>.
+      </div><div id="footer-designer">
+        Designed &amp; built by Clovis Parker-Jervis, using Vim and Firefox.
+      </div>
+    </article>
+
+  </body>
+
 </html>
