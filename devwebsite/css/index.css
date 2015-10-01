@@ -54,6 +54,7 @@
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
+  border-radius: 50%;
   outline: 0;
 }
 
@@ -62,6 +63,8 @@
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
+  transition-duration: 0.3s;
+  background-color: rgba(45,116,255,0.5);
 }
 
 #work-next{
@@ -76,6 +79,8 @@
   background-size: auto 100%;
   background-repeat: no-repeat;
   background-position: center;
+  transition-duration: 0.3s;
+  background-color: rgba(45,116,255,0.5);
 }
 
 #home{
@@ -119,4 +124,10 @@
   background-repeat: no-repeat;
   background-position: center;
   background-color: #C5C915;
+}
+
+#about-body-logo{
+  position: relative;
+  width: 40%;
+  left:30%;
 }
