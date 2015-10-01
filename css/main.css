@@ -1,7 +1,11 @@
 body{
   margin:0%;
-  font-family:Oxygen;
+  font-family: arial, sans-serif;
   color: #FFFFFF;
+}
+
+h1,h2{
+  font-family: 'Armata', sans-serif;
 }
 
 a{
@@ -13,7 +17,7 @@ a:hover{
   text-decoration: underline;
 }
 
-#top-bar{
+header{
   position:fixed;
   margin:1%;
   width:98%;
@@ -21,7 +25,7 @@ a:hover{
   z-index:1;
 }
 
-.top-bar-text{
+.header-box{
   float : left;
   display: inline-block;
   font-weight:bold;
@@ -33,14 +37,14 @@ a:hover{
   border-radius: 0.2em;
 }
 
-.top-bar-text:hover{
+.header-box:hover{
   transition-duration: 0.3s;
   color: #2D74FF; /*her majesty's blue*/
   text-decoration: none;
   background-color: #FFFFFF;
 }
 
-.top-bar-text-link{
+.header-box-link{
   display: block;
   margin-top: 0.3em;
   margin-bottom: 0.7em;
@@ -48,7 +52,7 @@ a:hover{
   margin-right: 10%;
 }
 
-#top-bar-about:hover{
+#header-about:hover{
   height: 100%;
 }
 
@@ -63,13 +67,9 @@ a:hover{
   bottom: 0;
 }
 
-#footer:active{
-  display: none;
-}
-
 #footer-copyright{
   display: inline-block;
-  width: 50%;
+  width: 60%;
   text-align: left;
 }
 
@@ -79,6 +79,6 @@ a:hover{
 
 #footer-designer{
   display: inline-block;
-  width: 50%;
+  width: 40%;
   text-align: right;
 }

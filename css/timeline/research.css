@@ -1,17 +1,15 @@
 #research{
-  background-color: #FFFBB3;
-  height: 150%;
+  background-color: #3B3B3B;
   overflow: hidden;
 }
 
 #research-body{
   position: relative;
-  transform: translate(0, -50%);
-  top: 50%;
-  max-height: 150%;
-  width: 55%;
-  left: 22.5%;
-  right: 22.5%;
+  top: 2%;
+  bottom: 2%;
+  width: 90%;
+  left: 5%;
+  right: 5%;
 }
 
 #research-body-title{
@@ -25,13 +23,12 @@
 
 #research-body-cdf{
   position: relative;
-  transform: translate(-50%, 0);
-  left: 50%;
-  width: 838px;
-  height: 262px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 #research-body-text{
   position: relative;
-  color: #000000;
+  color: #FFFFFF;
 }
