@@ -69,17 +69,21 @@ body{
   background-position: center;
 }
 
+input[type="radio"]{
+  display:none;
+}
+
 @keyframes next1{0%{transform:translateY(0%);} 100% {transform: translateY(-20%);}}
 @keyframes next2{0%{transform:translateY(-20%);} 100% {transform: translateY(-40%);}}
 @keyframes next3{0%{transform:translateY(-40%);} 100% {transform: translateY(-60%);}}
 @keyframes next4{0%{transform:translateY(-60%);} 100% {transform: translateY(-80%);}}
 @keyframes next5{0%{transform:translateY(-80%);} 100% {transform: translateY(0%);}}
 
-main! > #home-rad:checked{ animation-name: next1;animation-duration: 0.5s;animation-fill-mode: forwards;}
-main! > #about-rad:checked{ animation-name: next2;animation-duration: 0.5s;animation-fill-mode: forwards;}
-main! > #team-rad:checked{ animation-name: next3;animation-duration: 0.5s;animation-fill-mode: forwards;}
-main! > #contact-rad:checked{ animation-name: next4;animation-duration: 0.5s;animation-fill-mode: forwards;}
-main! > #work-rad:checked{ animation-name: next5;animation-duration: 0.5s;animation-fill-mode: forwards;}
+main! > #home-tog:checked{ animation-name: next1;animation-duration: 0.5s;animation-fill-mode: forwards;}
+main! > #about-tog:checked{ animation-name: next2;animation-duration: 0.5s;animation-fill-mode: forwards;}
+main! > #team-tog:checked{ animation-name: next3;animation-duration: 0.5s;animation-fill-mode: forwards;}
+main! > #contact-tog:checked{ animation-name: next4;animation-duration: 0.5s;animation-fill-mode: forwards;}
+main! > #work-tog:checked{ animation-name: next5;animation-duration: 0.5s;animation-fill-mode: forwards;}
 
 #work-next{
   background: url("../img/uparrow.png");
