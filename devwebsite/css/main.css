@@ -33,7 +33,7 @@ header{
   margin-left:0.5%;
   margin-right:0.5%;
   height: 50%;
-  overflow: hidden;
+  overflow-y: hidden;
   border-radius: 0.2em;
 }
 
