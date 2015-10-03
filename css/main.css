@@ -21,26 +21,25 @@ header{
   position:fixed;
   margin:1%;
   width:98%;
-  height:8%;
+  height:2em;
   z-index:1;
 }
 
 .header-box{
-  float : left;
-  display: inline-block;
-  font-weight:bold;
+  float: left;
+  font-weight: bold;
   text-align: center;
-  margin-left:0.5%;
-  margin-right:0.5%;
-  height: 50%;
+  height: 100%;
   overflow-y: hidden;
+  overflow-x: visible;
   border-radius: 0.2em;
+  margin-left: 0.6%;
+  margin-right: 0.6%;
 }
 
 .header-box:hover{
   transition-duration: 0.3s;
   color: #2D74FF; /*her majesty's blue*/
-  text-decoration: none;
   background-color: #FFFFFF;
 }
 
@@ -48,12 +47,14 @@ header{
   display: block;
   margin-top: 0.3em;
   margin-bottom: 0.7em;
-  margin-left: 10%;
-  margin-right: 10%;
+}
+
+.header-box-link:hover{
+  text-decoration: none;
 }
 
 #header-about:hover{
-  height: 100%;
+  height: 200%;
 }
 
 .text{
