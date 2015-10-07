@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <mraa.h>
+#include <time.h>
+#include <string.h>
 
 struct exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_msec;        /* milliseconds,  range 0 to 999    */
@@ -17,35 +19,53 @@ struct exttm { //just like inbuilt struct tm, but has milliseconds
 struct location {
   float lat;          /* latitude, range 90 to -90        */
   float lon;          /* longitude, range 180 to -180     */
-}
+};
 
 int main() {
-{
-  aa_uart_context uart;
+  mraa_uart_context uart;
   uart = mraa_uart_init(0);
   if (uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
     return -1;
   }
-  char buffer;
   if (mraa_uart_data_available(uart, 5000)) {
     char buffer;
-    char line[100]; //guess
-    while 1 {
-      mraa_uart_read(uart, buffer, sizeof(buffer));
+    while (1) {
+      mraa_uart_read(uart, &buffer, sizeof(buffer));
       if (buffer == 10) { //checks for linefeed
-        for (int i = 0; buffer != 13; i++) { //ends at carriage return
-          mraa_uart_read(uart, buffer, sizeof(buffer));
+        char line[100] = ""; //guess
+        int i = 0;
+        do { //ends at carriage return
+          mraa_uart_read(uart, &buffer, sizeof(buffer));
           line[i] = buffer;
+          i++;
+        } while (buffer != 10);
+        char header[5];
+        strncpy( header, line, sizeof(header));
+        if (strcmp(header,"GPRMC") != 0) {
+          struct tm *timeinfo;
+          time_t rawtime;
+          time(&rawtime);
+          timeinfo = localtime (&rawtime);
+          struct location loc;
+          timeinfo->tm_hour = line[7]*10 + line[8];
+          timeinfo->tm_min = line[9]*10 + line[10];
+          timeinfo->tm_sec = line[11]*10 + line[12];
+          //timeinfo->tm_msec = line[14]*100 + line[15]*10 + line[16];
+          if ( line[18] == (int)"A") { //checks for fix
+            loc.lat = line[20]*1000+line[21]*100+line[22]*10+line[23]+line[25]*0.1+line[26]*0.01+line[27]*0.001+line[28]*0.0001;
+            if ( line[30] == (int)"S") {
+              loc.lat *= -1;
+            }
+            loc.lon = line[32]*10000+line[33]*1000+line[34]*100+line[35]*10+line[36]+line[38]*0.1+line[39]*0.01+line[40]*0.001+line[41]*0.0001;
+            if (line[43] == (int)"W") {
+              loc.lat *= -1;
+            }
+            printf("location is: %f, %f", loc.lat, loc.lon);
+          }
+          printf("time is: %s", asctime(timeinfo));
         }
       }
-      //check for $GPRMC
-      struct exttm time;
-      time.hour = line[7]*10 + line[8];
-      time.min = line[9]*10 + line[10];
-      time.sec = line[11]*10 + line[12];
-      time.msec = line[14]*100 + line[15]*10 + line[16];
-      time.msec = line[14]*100 + line[15]*10 + line[16];
     }
   } else {
     printf("unavailable\n");
