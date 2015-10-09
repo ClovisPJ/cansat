@@ -21,6 +21,8 @@ struct location {
   float lon;          /* longitude, range 180 to -180     */
 };
 
+int chrtoint (char number);
+
 int main() {
   mraa_uart_context uart;
   uart = mraa_uart_init(0);
@@ -40,30 +42,31 @@ int main() {
           line[i] = buffer;
           i++;
         } while (buffer != 10);
-        char header[5];
+        char header[7];
         strncpy( header, line, sizeof(header));
-        if (strcmp(header,"GPRMC") != 0) {
+        header[6] = '\0';
+        if (strcmp(header,"$GPRMC") == 0) {
           struct tm *timeinfo;
           time_t rawtime;
           time(&rawtime);
           timeinfo = localtime (&rawtime);
           struct location loc;
-          timeinfo->tm_hour = line[7]*10 + line[8];
-          timeinfo->tm_min = line[9]*10 + line[10];
-          timeinfo->tm_sec = line[11]*10 + line[12];
-          //timeinfo->tm_msec = line[14]*100 + line[15]*10 + line[16];
+          timeinfo->tm_hour = chrtoint(line[7])*10 + chrtoint(line[8]);
+          timeinfo->tm_min = chrtoint(line[9])*10 + chrtoint(line[10]);
+          timeinfo->tm_sec = chrtoint(line[11])*10 + chrtoint(line[12]);
+          //timeinfo->tm_msec = chrtoint(line[14])*100 + chrtoint(line[15])*10 + chrtoint(line[16]);
           if ( line[18] == (int)"A") { //checks for fix
-            loc.lat = line[20]*1000+line[21]*100+line[22]*10+line[23]+line[25]*0.1+line[26]*0.01+line[27]*0.001+line[28]*0.0001;
+            loc.lat = chrtoint(line[20])*1000+chrtoint(line[21])*100+chrtoint(line[22])*10+chrtoint(line[23])+chrtoint(line[25])*0.1+chrtoint(line[26])*0.01+chrtoint(line[27])*0.001+chrtoint(line[28])*0.0001;
             if ( line[30] == (int)"S") {
               loc.lat *= -1;
             }
-            loc.lon = line[32]*10000+line[33]*1000+line[34]*100+line[35]*10+line[36]+line[38]*0.1+line[39]*0.01+line[40]*0.001+line[41]*0.0001;
+            loc.lon = chrtoint(line[32])*10000+chrtoint(line[33])*1000+chrtoint(line[34])*100+chrtoint(line[35])*10+chrtoint(line[36])+chrtoint(line[38])*0.1+chrtoint(line[39])*0.01+chrtoint(line[40])*0.001+chrtoint(line[41])*0.0001;
             if (line[43] == (int)"W") {
               loc.lat *= -1;
             }
             printf("location is: %f, %f", loc.lat, loc.lon);
+            printf("time is: %s", asctime(timeinfo));
           }
-          printf("time is: %s", asctime(timeinfo));
         }
       }
     }
@@ -72,5 +75,14 @@ int main() {
   }
   mraa_uart_stop(uart);
   mraa_deinit();
-  return 0;
+  return EXIT_SUCCESS;
 }
+
+int chrtoint (char number) {
+  if ((number >= 48)&&(number <= 57)) {
+    return (int)(number - '0');
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
