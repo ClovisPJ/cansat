@@ -55,16 +55,16 @@ int main() {
           timeinfo->tm_min = chrtoint(line[9])*10 + chrtoint(line[10]);
           timeinfo->tm_sec = chrtoint(line[11])*10 + chrtoint(line[12]);
           //timeinfo->tm_msec = chrtoint(line[14])*100 + chrtoint(line[15])*10 + chrtoint(line[16]);
-          if ( line[18] == (int)"A") { //checks for fix
+          if ( line[18] == (int)'A') { //checks for fix
             loc.lat = chrtoint(line[20])*1000+chrtoint(line[21])*100+chrtoint(line[22])*10+chrtoint(line[23])+chrtoint(line[25])*0.1+chrtoint(line[26])*0.01+chrtoint(line[27])*0.001+chrtoint(line[28])*0.0001;
-            if ( line[30] == (int)"S") {
+            if ( line[30] == (int)'S') {
               loc.lat *= -1;
             }
             loc.lon = chrtoint(line[32])*10000+chrtoint(line[33])*1000+chrtoint(line[34])*100+chrtoint(line[35])*10+chrtoint(line[36])+chrtoint(line[38])*0.1+chrtoint(line[39])*0.01+chrtoint(line[40])*0.001+chrtoint(line[41])*0.0001;
-            if (line[43] == (int)"W") {
-              loc.lat *= -1;
+            if (line[43] == (int)'W') {
+              loc.lon *= -1;
             }
-            printf("location is: %f, %f", loc.lat, loc.lon);
+            printf("location is: %f, %f   ", loc.lat, loc.lon);
             printf("time is: %s", asctime(timeinfo));
           }
         }
