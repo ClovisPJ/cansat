@@ -22,67 +22,17 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <iostream>
-#include <string>
-#include <stdexcept>
 #include <unistd.h>
 #include <stdlib.h>
 #include <mraa/i2c.h>
 #include <math.h>
+#include <string.h>
 
-#define ADDR               0x77 // device address
-
-// registers address
-#define BMP085_ULTRALOWPOWER 0
-#define BMP085_STANDARD      1
-#define BMP085_HIGHRES       2
-#define BMP085_ULTRAHIGHRES  3
-#define BMP085_CAL_AC1           0xAA  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC2           0xAC  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC3           0xAE  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC4           0xB0  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC5           0xB2  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC6           0xB4  // R   Calibration data (16 bits)
-#define BMP085_CAL_B1            0xB6  // R   Calibration data (16 bits)
-#define BMP085_CAL_B2            0xB8  // R   Calibration data (16 bits)
-#define BMP085_CAL_MB            0xBA  // R   Calibration data (16 bits)
-#define BMP085_CAL_MC            0xBC  // R   Calibration data (16 bits)
-#define BMP085_CAL_MD            0xBE  // R   Calibration data (16 bits)
-
-#define BMP085_CONTROL           0xF4
-#define BMP085_TEMPDATA          0xF6
-#define BMP085_PRESSUREDATA      0xF6
-#define BMP085_READTEMPCMD       0x2E
-#define BMP085_READPRESSURECMD   0x34
-
-#define HIGH               1
-#define LOW                0
-
-char[] m_name;
-
-int m_controlAddr;
-int m_bus;
-mraa_i2c_context i2c;
-
-uint8_t oversampling;
-int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
-uint16_t ac4, ac5, ac6;
-
-int bmpx8x_init (int bus, int devAddr, uint8_t mode);
-int32_t getpressure ();
-int32_t getpressureraw ();
-int16_t gettemperatureraw ();
-float gettemperature ();
-int32_t getsealevelpressure(float altitudemeters = 0);
-float getaltitude (float sealevelpressure = 101325);
-int32_t computeB5 (int32_t UT);
-uint16_t i2creadreg_16 (int reg);
-int i2cwritereg (uint8_t reg, uint8_t value);
-uint8_t i2creadreg_8 (int reg);
+#include "bmpx8x.h"
 
 int bmpx8x_init (int bus, int devAddr, uint8_t mode) {
  
-    m_name = "BMPX8X";
+    strcpy(m_name, "BMPX8X");
  
     mraa_init();
     i2c = mraa_i2c_init(bus);
@@ -121,15 +71,17 @@ int bmpx8x_init (int bus, int devAddr, uint8_t mode) {
     mb = bmpx8x_readreg_16 (BMP085_CAL_MB);
     mc = bmpx8x_readreg_16 (BMP085_CAL_MC);
     md = bmpx8x_readreg_16 (BMP085_CAL_MD);
+
+    return EXIT_SUCCESS;
 }
 
 int32_t bmpx8x_getpressure () {
     int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
     uint32_t B4, B7;
 
-    UT = gettemperatureraw();
-    UP = getpressureraw();
-    B5 = computeB5(UT);
+    UT = bmpx8x_gettemperatureraw();
+    UP = bmpx8x_getpressureraw();
+    B5 = bmpx8x_computeB5(UT);
 
     // do pressure calcs
     B6 = B5 - 4000;
@@ -164,13 +116,13 @@ int32_t bmpx8x_getpressureraw () {
     bmpx8x_writereg (BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
 
     if (oversampling == BMP085_ULTRALOWPOWER) {
-        usleep(5000);
+        sleep(5);
     } else if (oversampling == BMP085_STANDARD) {
-        usleep(8000);
+        sleep(8);
     } else if (oversampling == BMP085_HIGHRES) {
-        usleep(14000);
+        sleep(14);
     } else {
-        usleep(26000);
+        sleep(26);
     }
 
     raw = bmpx8x_readreg_16 (BMP085_PRESSUREDATA);
@@ -184,7 +136,7 @@ int32_t bmpx8x_getpressureraw () {
 
 int16_t bmpx8x_gettemperatureraw () {
     bmpx8x_writereg (BMP085_CONTROL, BMP085_READTEMPCMD);
-    usleep(5000);
+    sleep(5);
     return bmpx8x_readreg_16 (BMP085_TEMPDATA);
 }
 
@@ -194,7 +146,7 @@ float bmpx8x_gettemperature () {
 
     UT = bmpx8x_gettemperatureraw ();
 
-    B5 = computeB5 (UT);
+    B5 = bmpx8x_computeB5 (UT);
     temp = (B5 + 8) >> 4;
     temp /= 10;
 
@@ -209,7 +161,7 @@ int32_t bmpx8x_getsealevelpressure (float altitudemeters) {
 float bmpx8x_getaltitude (float sealevelpressure) {
     float altitude;
 
-    float pressure = bmpx8x_getPressure ();
+    float pressure = bmpx8x_getpressure ();
 
     altitude = 44330 * (1.0 - pow(pressure /sealevelpressure,0.1903));
 
@@ -224,6 +176,7 @@ int32_t bmpx8x_computeB5 (int32_t UT) {
 }
 
 int bmpx8x_writereg (uint8_t reg, uint8_t value) {
+    int error;
 
     uint8_t data[2] = { reg, value };
 

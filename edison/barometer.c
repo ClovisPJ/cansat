@@ -23,14 +23,12 @@
  */
 
 #include <unistd.h>
-#include <iostream>
-#include <signal.h>
 
-#include "bmpx8x.c"
+#include "bmpx8x.h"
 
 int main(int argc, char **argv) {
 
-    uint32_t presure = 0;
+    uint32_t pressure = 0;
     float temperature = 0;
     float altitude = 0;
     uint32_t sealevel = 0;
@@ -41,14 +39,16 @@ int main(int argc, char **argv) {
     // Print the pressure, altitude, sea level, and
     // temperature values every 0.1 seconds
     while (1) {
-        presure = getpressure ();
-        temperature = gettemperature ();
-        altitude = getaltitude (101325);
-        sealevel = getsealevelpressure (0);
+        pressure = bmpx8x_getpressure ();
+        //temperature = bmpx8x_gettemperature ();
+        //altitude = bmpx8x_getaltitude (101325);
+        //sealevel = bmpx8x_getsealevelpressure (0);
 
-       printf("pressure value = %d, altitude value = %f, sealevel value = %d, temperature = %f\n", pressure, altitude, sealevel, temperature);
-       usleep (100000);
+       //printf("pressure value = %d, altitude value = %f, sealevel value = %d, temperature = %f\n", pressure, altitude, sealevel, temperature);
+       printf("pressure: %d",pressure);
+//       usleep (100000);
     }
 
     return 0;
 }
+

@@ -23,9 +23,10 @@
  */
 
 #include <unistd.h>
-#include "adxl345.c"
 
-int main(int argc, char **argv) {
+#include "adxl345.h"
+
+int main (int argc, char **argv) {
     int16_t *raw;
     float *acc;
 
@@ -41,7 +42,7 @@ int main(int argc, char **argv) {
         fprintf(stdout, "AccX: %5.2f g\n", acc[0]);
         fprintf(stdout, "AccY: %5.2f g\n", acc[1]);
         fprintf(stdout, "AccZ: %5.2f g\n", acc[2]);
-        sleep(1);
+//        sleep(1);
     }
     return 0;
 }
