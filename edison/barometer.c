@@ -23,6 +23,7 @@
  */
 
 #include <unistd.h>
+#include <stdio.h>
 
 #include "bmpx8x.h"
 
@@ -40,15 +41,14 @@ int main(int argc, char **argv) {
     // temperature values every 0.1 seconds
     while (1) {
         pressure = bmpx8x_getpressure ();
-        //temperature = bmpx8x_gettemperature ();
-        //altitude = bmpx8x_getaltitude (101325);
-        //sealevel = bmpx8x_getsealevelpressure (0);
+        temperature = bmpx8x_gettemperature ();
+        altitude = bmpx8x_getaltitude (101325);
+        sealevel = bmpx8x_getsealevelpressure (0);
 
-       //printf("pressure value = %d, altitude value = %f, sealevel value = %d, temperature = %f\n", pressure, altitude, sealevel, temperature);
-       printf("pressure: %d",pressure);
-//       usleep (100000);
+        printf("pressure value = %d, altitude value = %f, sealevel value = %d, temperature = %f\n", pressure, altitude, sealevel, temperature);
+        usleep (100000);
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 

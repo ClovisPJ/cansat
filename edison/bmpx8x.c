@@ -33,6 +33,7 @@
 int bmpx8x_init (int bus, int devAddr, uint8_t mode) {
  
     strcpy(m_name, "BMPX8X");
+    m_controlAddr = devAddr;
  
     mraa_init();
     i2c = mraa_i2c_init(bus);
@@ -116,13 +117,13 @@ int32_t bmpx8x_getpressureraw () {
     bmpx8x_writereg (BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
 
     if (oversampling == BMP085_ULTRALOWPOWER) {
-        sleep(5);
+        usleep(5000);
     } else if (oversampling == BMP085_STANDARD) {
-        sleep(8);
+        usleep(8000);
     } else if (oversampling == BMP085_HIGHRES) {
-        sleep(14);
+        usleep(14000);
     } else {
-        sleep(26);
+        usleep(26000);
     }
 
     raw = bmpx8x_readreg_16 (BMP085_PRESSUREDATA);
@@ -136,7 +137,7 @@ int32_t bmpx8x_getpressureraw () {
 
 int16_t bmpx8x_gettemperatureraw () {
     bmpx8x_writereg (BMP085_CONTROL, BMP085_READTEMPCMD);
-    sleep(5);
+    usleep(5000);
     return bmpx8x_readreg_16 (BMP085_TEMPDATA);
 }
 
@@ -180,7 +181,7 @@ int bmpx8x_writereg (uint8_t reg, uint8_t value) {
 
     uint8_t data[2] = { reg, value };
 
-    error = mraa_i2c_address(i2c,m_controlAddr);
+    error = mraa_i2c_address(i2c, m_controlAddr);
     error = mraa_i2c_write(i2c, data, 2);
 
     return error;
@@ -189,10 +190,11 @@ int bmpx8x_writereg (uint8_t reg, uint8_t value) {
 uint16_t bmpx8x_readreg_16 (int reg) {
     uint16_t data;
 
-    mraa_i2c_address(i2c,m_controlAddr);
-    mraa_i2c_write_byte_data(i2c, reg, m_controlAddr);
+    mraa_i2c_address(i2c, m_controlAddr);
+    mraa_i2c_write_byte(i2c, reg);
 
-    mraa_i2c_read_bytes_data(i2c, m_controlAddr, (uint8_t *)&data, 0x2);
+    mraa_i2c_address(i2c, m_controlAddr);
+    mraa_i2c_read(i2c, (uint8_t *)&data, 0x2);
 
     uint8_t high = (data & 0xFF00) >> 8;
     data = (data << 8) & 0xFF00;
@@ -204,10 +206,11 @@ uint16_t bmpx8x_readreg_16 (int reg) {
 uint8_t bmpx8x_readreg_8 (int reg) {
     uint8_t data;
 
-    mraa_i2c_address(i2c,m_controlAddr);
-    mraa_i2c_write_byte_data(i2c, reg, m_controlAddr);
+    mraa_i2c_address(i2c, m_controlAddr);
+    mraa_i2c_write_byte(i2c, reg);
 
-    mraa_i2c_read_bytes_data(i2c, m_controlAddr, &data, 0x1);
+    mraa_i2c_address(i2c, m_controlAddr);
+    mraa_i2c_read(i2c, &data, 0x1);
 
     return data;
 }
