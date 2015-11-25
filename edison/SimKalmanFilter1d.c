@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 //#include <gsl.h>
 
 int main() {
@@ -10,7 +11,7 @@ int main() {
 
   float actual_mean = 0;
   
-  float noise = 100;
+  float noise = 1;
   time_t t;
   srand((unsigned) time(&t));
   
@@ -28,7 +29,7 @@ int main() {
     float estimate_variance = 0;
     //estimate_mean = state_mean * Fk + acceleration * Bk;
     //estimate_variance = Fk * state_variance * transpose(Fk) + noise;
-    estimate_mean = state_mean + 10; //10 is v
+    estimate_mean = state_mean + 0.001; //10 is v
     estimate_variance = state_variance + noise;
     
     printf("    Observation: %f,  %f", observation_mean, observation_variance);
@@ -44,7 +45,8 @@ int main() {
     printf("     State: %f,   %f", state_mean, state_variance);
     printf("     Actual: %f\n", actual_mean);
   
-    actual_mean += 10;
+    actual_mean += 0.001;
+    usleep(1000000);
   
   }
 
