@@ -40,10 +40,10 @@ int main(int argc, char **argv) {
     // Print the pressure, altitude, sea level, and
     // temperature values every 0.1 seconds
     while (1) {
-        pressure = bmpx8x_getpressure ();
-        temperature = bmpx8x_gettemperature ();
-        altitude = bmpx8x_getaltitude (101325);
-        sealevel = bmpx8x_getsealevelpressure (0);
+        pressure = bmpx8x_getpressure (); //SD: 4 Pa
+        temperature = bmpx8x_gettemperature (); // SD: 5/30 degC
+        altitude = bmpx8x_getaltitude (101325); // SD: 1/3 degC
+        sealevel = bmpx8x_getsealevelpressure (0); // SD: 4 Pa
 
         printf("pressure value = %d, altitude value = %f, sealevel value = %d, temperature = %f\n", pressure, altitude, sealevel, temperature);
         usleep (100000);

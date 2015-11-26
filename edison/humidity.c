@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
         humidity    = htu21d_gethumidity(false);
         temperature = htu21d_gettemperature(false);
 
-        printf("humidity value = %f\n", humidity);
-        printf("temperature value = %f\n", temperature);
+        printf("humidity value = %f\n", humidity); //+- 2%
+        printf("temperature value = %f\n", temperature); //SD: 0.1 degC
         printf("compensated RH value = %f\n", compRH);
         usleep (500000);
     }
