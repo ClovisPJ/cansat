@@ -54,11 +54,6 @@ int adxl345_init() {
         return EXIT_FAILURE;
     }
 
-    if ( mraa_i2c_address(i2c, ADXL345_I2C_ADDR) != EXIT_SUCCESS ){
-        printf("i2c.address() failed");
-        return EXIT_FAILURE;
-    }
-
     m_buffer[0] = ADXL345_DATA_FORMAT;
     m_buffer[1] = ADXL345_16G | ADXL345_FULL_RES;
     if( mraa_i2c_write(i2c, m_buffer, 2) != EXIT_SUCCESS){
