@@ -1,9 +1,9 @@
-#research{
+#maths{
   background-color: #3B3B3B;
   overflow: hidden;
 }
 
-#research-body{
+#maths-body{
   position: relative;
   top: 2%;
   bottom: 2%;
@@ -12,7 +12,7 @@
   right: 5%;
 }
 
-#research-body-title{
+#maths-body-title{
   font-size:4em;
   margin:1%;
   color: #2D74FF; /*her majesty's blue*/
@@ -21,14 +21,14 @@
   text-align:center;
 }
 
-#research-body-cdf{
+#maths-body-cdf{
   position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-#research-body-text{
+#maths-body-text{
   position: relative;
   color: #FFFFFF;
 }
