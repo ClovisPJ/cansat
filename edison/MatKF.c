@@ -7,8 +7,6 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
-#include "gps.h"
-
 int main() {
 
   gsl_matrix *state_mean = gsl_matrix_calloc(2,1);
@@ -16,12 +14,11 @@ int main() {
 
   gsl_matrix *actual_mean = gsl_matrix_calloc(2,1);
   
-  /*double noise = 10;
+  double noise = 10;
   time_t t;
   srand((unsigned) time(&t));
-  */
 
-  double timestep;
+  double timestep = 1;
   double acceleration;
 
   gsl_matrix *observation_mean = gsl_matrix_calloc(2,1);
@@ -45,47 +42,17 @@ int main() {
   gsl_matrix_set(control, 0,0, 0.5*pow(timestep,2));
   gsl_matrix_set(control, 1,0, timestep);
 
-  gps_init();
-  gps_locate();
-
-  gsl_vector loc = gps_get_location();
-  gsl_vector templ;
-  gsl_vector templ2;
-
-  struct tm time = gps_get_time();
-  struct tm tempt;
-
-  gsl_vector velocity = gsl_vector_calloc(2);
-
   for (int t = 0; t < 100; t++) {
 
-    /*
     double rannum;
     rannum = (rand() % 1000);
     rannum *= 0.001;
   
     gsl_matrix_memcpy(observation_mean, actual_mean); //fake poisition reading (GPS), fake velocity reading (diff(GPS))
     gsl_matrix_add_constant(observation_mean, noise*rannum); 
-    */
 
-    gsl_vector_memcpy(templ, loc);
-    loc = gps_get_location();
-    gsl_vector_memcpy(templ2, loc);
-    gsl_vector_sub(templ2, templ);
-    gsl_vector_memcpy(velocity, templ2);
-
-    tempt = time;
-    time = gps_get_time();
-    timestep = time - tempt;
-    
-    gsl_matrix_set_zero(temp21a);
-    gsl_matrix_set(temp21a, 0,0, pow(pow(gsl_vector_get(loc,0),2)+pow(gsl_vector_get(loc,1),2),0.5));
-    gsl_matrix_set(temp21a, 1,0, pow(pow(gsl_vector_get(velocity,0),2)+pow(gsl_vector_get(velocity,1),2),0.5));
-    //temp21a contains x_k, state_mean contains x_k-1. Transformation of this is needed, this will be Hk
-
-    gsl_matrix_set_all(observation_covariance, noise); //gps noise
-
-    acceleration = 0; //adxl345 SD: 1.95m
+    gsl_matrix_set_all(observation_covariance, noise); //adxl345 noise
+    acceleration = 0; //adxl345
     
     //estimate_mean = predict * state_mean + control * acceleration;
     gsl_matrix_set_zero(estimate_mean);
@@ -100,7 +67,7 @@ int main() {
     gsl_matrix_set_zero(temp22a);
     gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1, state_covariance, predict, 0, temp22a); //notice predict is transposed
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1, predict, temp22a, 0, estimate_covariance);
-    gsl_matrix_add_constant(estimate_covariance, noise+0.001*rannum); //adxl345 noise
+    gsl_matrix_add_constant(estimate_covariance, noise+0.001*rannum);
     
     int val; //quick fix due to singular matrices
     val = gsl_matrix_get(observation_covariance, 0,0);
