@@ -75,8 +75,8 @@ int chrtoint (char number) {
   }
 }
 
-struct tm gps_get_time() {
-  return returntime;
+time_t gps_get_time() {
+  return mktime(&returntime);
 }
 
 gsl_vector *gps_get_location() {

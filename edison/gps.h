@@ -25,5 +25,5 @@ char buffer;
 int gps_init();
 int gps_locate();
 int chrtoint (char number);
-struct tm gps_get_time();
+time_t gps_get_time();
 gsl_vector *gps_get_location();
