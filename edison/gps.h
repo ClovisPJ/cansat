@@ -2,7 +2,7 @@
 #include <mraa.h>
 #include <time.h>
 #include <string.h>
-#include <gsl/vector.h>
+#include <gsl/gsl_vector.h>
 
 struct exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_msec;        /* milliseconds,  range 0 to 999    */
@@ -18,10 +18,12 @@ struct exttm { //just like inbuilt struct tm, but has milliseconds
 };
 
 struct tm returntime;
-gsl_vector returnloc = gsl_vector_calloc(2); //latitude then longitude
+gsl_vector *returnloc; //latitude then longitude
+mraa_uart_context uart;
+char buffer;
 
 int gps_init();
 int gps_locate();
 int chrtoint (char number);
-struct tm gps_get_time() {
-gsl_vector gps_get_location() {
+struct tm gps_get_time();
+gsl_vector *gps_get_location();
