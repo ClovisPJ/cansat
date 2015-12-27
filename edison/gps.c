@@ -20,6 +20,7 @@ int gps_init() {
 }
 
 int gps_locate() {
+  int tries = 0;
   while (1) {
     mraa_uart_read(uart, &buffer, sizeof(buffer));
     if (buffer == 10) { //checks for linefeed
@@ -57,13 +58,17 @@ int gps_locate() {
           //printf("time is: %s", asctime(timeinfo));
           gsl_vector_memcpy(returnloc, loc);
           returntime = *timeinfo;
-          goto END;
+          return EXIT_SUCCESS;
+          break;
+        } else {
+          if (tries >= 5) {
+            return 3; // 3: No fix
+            break;
+          } else tries++;
         }
       }
     }
   }
-  END:mraa_uart_stop(uart);
-  mraa_deinit();
   return EXIT_SUCCESS;
 }
 
