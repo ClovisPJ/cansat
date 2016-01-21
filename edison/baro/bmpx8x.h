@@ -24,9 +24,8 @@
 
 #include <mraa/i2c.h>
 
-#define ADDR               0x77 // device address
+#define BMP085_ADDR               0x77
 
-// registers address
 #define BMP085_ULTRALOWPOWER 0
 #define BMP085_STANDARD      1
 #define BMP085_HIGHRES       2
@@ -49,20 +48,6 @@
 #define BMP085_READTEMPCMD       0x2E
 #define BMP085_READPRESSURECMD   0x34
 
-#define HIGH               1
-#define LOW                0
-
-
-int m_controlAddr;
-int m_bus;
-char m_name[6];
-
-mraa_i2c_context i2c;
-
-uint8_t oversampling;
-int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
-uint16_t ac4, ac5, ac6;
-
 int bmpx8x_init (int bus, int devAddr, uint8_t mode);
 int32_t bmpx8x_getpressure ();
 int32_t bmpx8x_getpressureraw ();
@@ -74,3 +59,13 @@ int32_t bmpx8x_computeB5 (int32_t UT);
 uint16_t bmpx8x_readreg_16 (int reg);
 int bmpx8x_writereg (uint8_t reg, uint8_t value);
 uint8_t bmpx8x_readreg_8 (int reg);
+
+int bmpx8x_m_controlAddr;
+int bmpx8x_m_bus;
+char bmpx8x_m_name[6];
+
+mraa_i2c_context bmpx8x_i2c;
+
+uint8_t bmpx8x_oversampling;
+int16_t bmpx8x_ac1, bmpx8x_ac2, bmpx8x_ac3, bmpx8x_b1, bmpx8x_b2, bmpx8x_mb, bmpx8x_mc, bmpx8x_md;
+uint16_t bmpx8x_ac4, bmpx8x_ac5, bmpx8x_ac6;

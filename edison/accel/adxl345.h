@@ -26,11 +26,9 @@
 
 #define READ_BUFFER_LENGTH 6
 
-//address and id
 #define ADXL345_I2C_ADDR 0x53
 #define ADXL345_ID 0x00
 
-//control registers
 #define ADXL345_OFSX 0x1E
 #define ADXL345_OFSY 0x1F
 #define ADXL345_OFSZ 0x20
@@ -46,12 +44,10 @@
 #define ADXL345_TAP_AXES 0x2A
 #define ADXL345_ACT_TAP_STATUS 0x2B
 
-//interrupt registers
 #define ADXL345_INT_ENABLE 0x2E
 #define ADXL345_INT_MAP 0x2F
 #define ADXL345_INT_SOURCE 0x30
 
-//data registers (read only)
 #define ADXL345_XOUT_L 0x32
 #define ADXL345_XOUT_H 0x33
 #define ADXL345_YOUT_L 0x34
@@ -60,19 +56,16 @@
 #define ADXL345_ZOUT_H 0x37
 #define DATA_REG_SIZE 6
 
-//data and power management
 #define ADXL345_BW_RATE 0x2C
 #define ADXL345_POWER_CTL 0x2D
 #define ADXL345_DATA_FORMAT 0x31
 #define ADXL345_FIFO_CTL 0x38
 #define ADXL345_FIFO_STATUS 0x39
 
-//useful values
 #define ADXL345_POWER_ON 0x08
 #define ADXL345_AUTO_SLP 0x30
 #define ADXL345_STANDBY 0x00
 
-//scales and resolution
 #define ADXL345_FULL_RES 0x08
 #define ADXL345_10BIT 0x00
 #define ADXL345_2G 0x00
@@ -80,10 +73,10 @@
 #define ADXL345_8G 0x02
 #define ADXL345_16G 0x03
 
-float m_accel[3];
-float m_offsets[3];
-int16_t m_rawaccel[3];
-uint8_t m_buffer[READ_BUFFER_LENGTH];
+float adxl345_m_accel[3];
+float adxl345_m_offsets[3];
+int16_t adxl345_m_rawaccel[3];
+uint8_t adxl345_m_buffer[READ_BUFFER_LENGTH];
 
 int adxl345_init();
 float* adxl345_getacceleration();
@@ -91,4 +84,4 @@ int16_t* adxl345_getrawvalues();
 uint8_t adxl345_getscale();
 int adxl345_update();
 
-mraa_i2c_context i2c;
+mraa_i2c_context adxl345_i2c;

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ads.h"
+#include "ads1115.h"
 
 int main() {
   ads1115_init();

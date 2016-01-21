@@ -35,28 +35,28 @@
 int adxl345_init() {
 
     mraa_init();
-    i2c = mraa_i2c_init(1);
+    adxl345_i2c = mraa_i2c_init(1);
 
-    if (i2c == NULL) {
+    if (adxl345_i2c == NULL) {
         printf("i2c context init failed");
         return EXIT_FAILURE;
     }
 
-    if ( mraa_i2c_address(i2c, ADXL345_I2C_ADDR) != EXIT_SUCCESS ){
+    if ( mraa_i2c_address(adxl345_i2c, ADXL345_I2C_ADDR) != EXIT_SUCCESS ){
         printf("i2c.address() failed");
         return EXIT_FAILURE;
     }
 
-    m_buffer[0] = ADXL345_POWER_CTL;
-    m_buffer[1] = ADXL345_POWER_ON;
-    if ( mraa_i2c_write(i2c, m_buffer, 2) != EXIT_SUCCESS){
+    adxl345_m_buffer[0] = ADXL345_POWER_CTL;
+    adxl345_m_buffer[1] = ADXL345_POWER_ON;
+    if ( mraa_i2c_write(adxl345_i2c, adxl345_m_buffer, 2) != EXIT_SUCCESS){
         printf("i2c.write() control register failed");
         return EXIT_FAILURE;
     }
 
-    m_buffer[0] = ADXL345_DATA_FORMAT;
-    m_buffer[1] = ADXL345_16G | ADXL345_FULL_RES;
-    if( mraa_i2c_write(i2c, m_buffer, 2) != EXIT_SUCCESS){
+    adxl345_m_buffer[0] = ADXL345_DATA_FORMAT;
+    adxl345_m_buffer[1] = ADXL345_16G | ADXL345_FULL_RES;
+    if( mraa_i2c_write(adxl345_i2c, adxl345_m_buffer, 2) != EXIT_SUCCESS){
         printf("i2c.write() mode register failed");
         return EXIT_FAILURE;
     }
@@ -64,50 +64,50 @@ int adxl345_init() {
     //2.5V sensitivity is 256 LSB/g = 0.00390625 g/bit
     //3.3V x and y sensitivity is 265 LSB/g = 0.003773584 g/bit, z is the same
 
-    m_offsets[0] = 0.003773584;
-    m_offsets[1] = 0.003773584;
-    m_offsets[2] = 0.00390625;
+    adxl345_m_offsets[0] = 0.003773584;
+    adxl345_m_offsets[1] = 0.003773584;
+    adxl345_m_offsets[2] = 0.00390625;
 
     adxl345_update();
 }
 
 float* adxl345_getacceleration() {
     for(int i = 0; i < 3; i++) {
-        m_accel[i] = m_rawaccel[i] * m_offsets[i];
+        adxl345_m_accel[i] = adxl345_m_rawaccel[i] * adxl345_m_offsets[i];
     }
-    return &m_accel[0];
+    return &adxl345_m_accel[0];
 }
 
 int16_t* adxl345_getrawvalues() {
-    return &m_rawaccel[0];
+    return &adxl345_m_rawaccel[0];
 }
 
 uint8_t adxl345_getscale() {
 
     uint8_t result;
 
-    mraa_i2c_address(i2c, ADXL345_I2C_ADDR);
+    mraa_i2c_address(adxl345_i2c, ADXL345_I2C_ADDR);
 
-    mraa_i2c_write_byte(i2c, ADXL345_DATA_FORMAT);
+    mraa_i2c_write_byte(adxl345_i2c, ADXL345_DATA_FORMAT);
 
-    result = mraa_i2c_read_byte(i2c);
+    result = mraa_i2c_read_byte(adxl345_i2c);
 
     return pow(2, (result & 0x03) + 1);
 }
 
 int adxl345_update()
 {
-    mraa_i2c_address(i2c, ADXL345_I2C_ADDR);
-    mraa_i2c_write_byte(i2c, ADXL345_XOUT_L);
+    mraa_i2c_address(adxl345_i2c, ADXL345_I2C_ADDR);
+    mraa_i2c_write_byte(adxl345_i2c, ADXL345_XOUT_L);
 
-    mraa_i2c_read(i2c, m_buffer, DATA_REG_SIZE);
+    mraa_i2c_read(adxl345_i2c, adxl345_m_buffer, DATA_REG_SIZE);
 
     // x
-    m_rawaccel[0] = ((m_buffer[1] << 8 ) | m_buffer[0]);
+    adxl345_m_rawaccel[0] = ((adxl345_m_buffer[1] << 8 ) | adxl345_m_buffer[0]);
     // y
-    m_rawaccel[1] = ((m_buffer[3] << 8 ) | m_buffer[2]);
+    adxl345_m_rawaccel[1] = ((adxl345_m_buffer[3] << 8 ) | adxl345_m_buffer[2]);
     // z
-    m_rawaccel[2] = ((m_buffer[5] << 8 ) | m_buffer[4]);
+    adxl345_m_rawaccel[2] = ((adxl345_m_buffer[5] << 8 ) | adxl345_m_buffer[4]);
 
     return EXIT_SUCCESS;
 }

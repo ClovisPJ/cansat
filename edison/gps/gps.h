@@ -4,7 +4,7 @@
 #include <string.h>
 #include <gsl/gsl_vector.h>
 
-struct exttm { //just like inbuilt struct tm, but has milliseconds
+struct gps_exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_msec;        /* milliseconds,  range 0 to 999    */
   int tm_sec;         /* seconds,  range 0 to 59          */
   int tm_min;         /* minutes, range 0 to 59           */
@@ -17,13 +17,15 @@ struct exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_isdst;       /* daylight saving time             */
 };
 
-struct tm returntime;
-gsl_vector *returnloc; //latitude then longitude
-mraa_uart_context uart;
-char buffer;
+struct tm gps_returntime;
+gsl_vector *gps_returnloc; //latitude then longitude
+mraa_uart_context gps_uart;
+mraa_gpio_context gps_gpio;
+char gps_buffer;
 
 int gps_init();
 int gps_locate();
-int chrtoint (char number);
+int gps_chrtoint (char number);
 time_t gps_get_time();
 gsl_vector *gps_get_location();
+int gps_fix();

@@ -30,23 +30,23 @@
 #include "htu21d.h"
 
 int htu21d_init (int bus, int devAddr) {
-    m_temperature = 0;
-    m_humidity    = 0;
+    htu21d_m_temperature = 0;
+    htu21d_m_humidity    = 0;
 
-    strcpy(m_name, HTU21D_NAME);
+    strcpy(htu21d_m_name, HTU21D_NAME);
 
-    m_controlAddr = devAddr;
-    m_bus = bus;
+    htu21d_m_controlAddr = devAddr;
+    htu21d_m_bus = bus;
 
     mraa_init();
-    i2c = mraa_i2c_init(bus);
+    htu21d_i2c = mraa_i2c_init(bus);
 
-    if (i2c == NULL) {
+    if (htu21d_i2c == NULL) {
         printf("i2c context init failed");
         return EXIT_FAILURE;
     }
 
-    if ( mraa_i2c_address(i2c, HTU21D_I2C_ADDRESS) != EXIT_SUCCESS ){
+    if ( mraa_i2c_address(htu21d_i2c, HTU21D_I2C_ADDRESS) != EXIT_SUCCESS ){
         printf("i2c.address() failed");
         return EXIT_FAILURE;
     }
@@ -56,8 +56,8 @@ int htu21d_init (int bus, int devAddr) {
 
 void htu21d_resetsensor() {
     uint8_t data;
-    mraa_i2c_address(i2c, m_controlAddr);
-    mraa_i2c_write(i2c, &data, 1);
+    mraa_i2c_address(htu21d_i2c, htu21d_m_controlAddr);
+    mraa_i2c_write(htu21d_i2c, &data, 1);
     usleep(20000);
 }
 
@@ -79,10 +79,10 @@ int htu21d_sampledata(void) {
     uint32_t itemp;
 
     itemp = htu21d_readreg_16(HTU21D_READ_TEMP_HOLD);
-    m_temperature = htu21d_converttemp(itemp);
+    htu21d_m_temperature = htu21d_converttemp(itemp);
 
     itemp = htu21d_readreg_16(HTU21D_READ_HUMIDITY_HOLD);
-    m_humidity = htu21d_convertRH(itemp);
+    htu21d_m_humidity = htu21d_convertRH(itemp);
 
     return 0;
 }
@@ -91,14 +91,14 @@ float htu21d_gettemperature(int bSampleData) {
     if (bSampleData) {
         htu21d_sampledata();
     }
-    return (float)m_temperature / 1000;
+    return (float)htu21d_m_temperature / 1000;
 }
 
 float htu21d_gethumidity(int bSampleData) {
     if (bSampleData) {
         htu21d_sampledata();
     }
-    return (float)m_humidity / 1000;
+    return (float)htu21d_m_humidity / 1000;
 }
 
 /*
@@ -111,7 +111,7 @@ float htu21d_getcompRH(int bSampleData) {
 	if (bSampleData) {
 	  htu21d_sampledata();
 	}
-	return (float)(m_humidity + (25000 - m_temperature) * 3 / 20) / 1000;
+	return (float)(htu21d_m_humidity + (25000 - htu21d_m_temperature) * 3 / 20) / 1000;
 }
 
 int htu21d_setheater(int bEnable) {
@@ -144,18 +144,18 @@ int htu21d_testsensor() {
 
     fprintf(stdout, "Executing Sensor Test\n" );
 
-    fHum  = htu21d_gethumidity(true);
-    fTemp = htu21d_gettemperature(false);
+    fHum  = htu21d_gethumidity(1);
+    fTemp = htu21d_gettemperature(0);
     fTempFirst = fTempMax = fTempMin = fTemp;
     fHumFirst  = fHumMax  = fHumMin  = fHum;
 
     // Turn on the heater to make a sensor change
-    htu21d_setheater(true);
+    htu21d_setheater(1);
 
     // Then sample the sensor a few times
     for (i=0; i < 10; i++) {
-        fHum  = htu21d_gethumidity(true);
-        fTemp = htu21d_gettemperature(false);
+        fHum  = htu21d_gethumidity(1);
+        fTemp = htu21d_gettemperature(0);
         if (fHum  < fHumMin)  fHumMin  = fHum;
         if (fHum  > fHumMax)  fHumMax  = fHum;
         if (fTemp < fTempMin) fTempMin = fTemp;
@@ -164,7 +164,7 @@ int htu21d_testsensor() {
     }
 
     // Turn off the heater
-    htu21d_setheater(false);
+    htu21d_setheater(1);
 
     // Now check the results
     if ((fTemp - fTempFirst) <= 0) {
@@ -196,8 +196,8 @@ int htu21d_writereg (uint8_t reg, uint8_t value) {
     int error;
 
     uint8_t data[2] = { reg, value };
-    mraa_i2c_address(i2c, m_controlAddr);
-    error = mraa_i2c_write (i2c, data, 2);
+    mraa_i2c_address(htu21d_i2c, htu21d_m_controlAddr);
+    error = mraa_i2c_write (htu21d_i2c, data, 2);
     if ( error != EXIT_SUCCESS) {
       printf("mraa_i2c_write() failed\n");
     }
@@ -206,13 +206,13 @@ int htu21d_writereg (uint8_t reg, uint8_t value) {
 
 uint16_t htu21d_readreg_16 (int reg) {
     uint16_t data;
-    mraa_i2c_address(i2c, m_controlAddr);
-    data  = (uint16_t)mraa_i2c_read_byte_data(i2c, reg) << 8;
-    data |= (uint16_t)mraa_i2c_read_byte_data(i2c, reg+1);
+    mraa_i2c_address(htu21d_i2c, htu21d_m_controlAddr);
+    data  = (uint16_t)mraa_i2c_read_byte_data(htu21d_i2c, reg) << 8;
+    data |= (uint16_t)mraa_i2c_read_byte_data(htu21d_i2c, reg+1);
     return data;
 }
 
 uint8_t htu21d_readreg_8 (int reg) {
-    mraa_i2c_address(i2c, m_controlAddr);
-    return mraa_i2c_read_byte_data(i2c, reg);
+    mraa_i2c_address(htu21d_i2c, htu21d_m_controlAddr);
+    return mraa_i2c_read_byte_data(htu21d_i2c, reg);
 }

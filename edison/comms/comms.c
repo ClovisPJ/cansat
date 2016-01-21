@@ -61,8 +61,8 @@ int main() {
 
   // 6 <= codelen <= 2 
   //TODO: allow 7 (should work as fits lu, and allow 1. broken due to codes generated incorrectly
-  //sendMessage(pck,2);
-  receiveMessage();
+  sendMessage(pck);
+  //receiveMessage();
 
   //sendMessage(receiveMessage(256),256);
 
@@ -369,3 +369,4 @@ int printbin (long unsigned dec) {
   }
   return EXIT_SUCCESS;
 }
+

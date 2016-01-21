@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
     htu21d_testsensor();
 
     while (1) {
-        compRH      = htu21d_getcompRH(true);
-        humidity    = htu21d_gethumidity(false);
-        temperature = htu21d_gettemperature(false);
+        compRH      = htu21d_getcompRH(1);
+        humidity    = htu21d_gethumidity(0);
+        temperature = htu21d_gettemperature(0);
 
         printf("humidity value = %f\n", humidity); //+- 2%
         printf("temperature value = %f\n", temperature); //SD: 0.1 degC

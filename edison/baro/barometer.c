@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     uint32_t sealevel = 0;
 
     // Instantiate a BMPX8X sensor on I2C
-    bmpx8x_init(1, 0x77, 3);
+    bmpx8x_init(1, BMP085_ADDR, 3);
 
     // Print the pressure, altitude, sea level, and
     // temperature values every 0.1 seconds

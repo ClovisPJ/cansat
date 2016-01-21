@@ -32,18 +32,18 @@
 
 int bmpx8x_init (int bus, int devAddr, uint8_t mode) {
  
-    strcpy(m_name, "BMPX8X");
-    m_controlAddr = devAddr;
+    strcpy(bmpx8x_m_name, "BMPX8X");
+    bmpx8x_m_controlAddr = devAddr;
  
     mraa_init();
-    i2c = mraa_i2c_init(bus);
+    bmpx8x_i2c = mraa_i2c_init(bus);
 
-    if (i2c == NULL) {
+    if (bmpx8x_i2c == NULL) {
         printf("i2c context init failed");
         return EXIT_FAILURE;
     }
 
-    if (mraa_i2c_address(i2c, devAddr) != EXIT_SUCCESS ){
+    if (mraa_i2c_address(bmpx8x_i2c, devAddr) != EXIT_SUCCESS ){
         printf("i2c.address() failed");
         return EXIT_FAILURE;
     }
@@ -56,22 +56,22 @@ int bmpx8x_init (int bus, int devAddr, uint8_t mode) {
     if (mode > BMP085_ULTRAHIGHRES) {
         mode = BMP085_ULTRAHIGHRES;
     }
-    oversampling = mode;
+    bmpx8x_oversampling = mode;
 
     /* read calibration data */
-    ac1 = bmpx8x_readreg_16 (BMP085_CAL_AC1);
-    ac2 = bmpx8x_readreg_16 (BMP085_CAL_AC2);
-    ac3 = bmpx8x_readreg_16 (BMP085_CAL_AC3);
-    ac4 = bmpx8x_readreg_16 (BMP085_CAL_AC4);
-    ac5 = bmpx8x_readreg_16 (BMP085_CAL_AC5);
-    ac6 = bmpx8x_readreg_16 (BMP085_CAL_AC6);
+    bmpx8x_ac1 = bmpx8x_readreg_16 (BMP085_CAL_AC1);
+    bmpx8x_ac2 = bmpx8x_readreg_16 (BMP085_CAL_AC2);
+    bmpx8x_ac3 = bmpx8x_readreg_16 (BMP085_CAL_AC3);
+    bmpx8x_ac4 = bmpx8x_readreg_16 (BMP085_CAL_AC4);
+    bmpx8x_ac5 = bmpx8x_readreg_16 (BMP085_CAL_AC5);
+    bmpx8x_ac6 = bmpx8x_readreg_16 (BMP085_CAL_AC6);
 
-    b1 = bmpx8x_readreg_16 (BMP085_CAL_B1);
-    b2 = bmpx8x_readreg_16 (BMP085_CAL_B2);
+    bmpx8x_b1 = bmpx8x_readreg_16 (BMP085_CAL_B1);
+    bmpx8x_b2 = bmpx8x_readreg_16 (BMP085_CAL_B2);
 
-    mb = bmpx8x_readreg_16 (BMP085_CAL_MB);
-    mc = bmpx8x_readreg_16 (BMP085_CAL_MC);
-    md = bmpx8x_readreg_16 (BMP085_CAL_MD);
+    bmpx8x_mb = bmpx8x_readreg_16 (BMP085_CAL_MB);
+    bmpx8x_mc = bmpx8x_readreg_16 (BMP085_CAL_MC);
+    bmpx8x_md = bmpx8x_readreg_16 (BMP085_CAL_MD);
 
     return EXIT_SUCCESS;
 }
@@ -86,16 +86,16 @@ int32_t bmpx8x_getpressure () {
 
     // do pressure calcs
     B6 = B5 - 4000;
-    X1 = ((int32_t)b2 * ( (B6 * B6)>>12 )) >> 11;
-    X2 = ((int32_t)ac2 * B6) >> 11;
+    X1 = ((int32_t)bmpx8x_b2 * ( (B6 * B6)>>12 )) >> 11;
+    X2 = ((int32_t)bmpx8x_ac2 * B6) >> 11;
     X3 = X1 + X2;
-    B3 = ((((int32_t)ac1*4 + X3) << oversampling) + 2) / 4;
+    B3 = ((((int32_t)bmpx8x_ac1*4 + X3) << bmpx8x_oversampling) + 2) / 4;
 
-    X1 = ((int32_t)ac3 * B6) >> 13;
-    X2 = ((int32_t)b1 * ((B6 * B6) >> 12)) >> 16;
+    X1 = ((int32_t)bmpx8x_ac3 * B6) >> 13;
+    X2 = ((int32_t)bmpx8x_b1 * ((B6 * B6) >> 12)) >> 16;
     X3 = ((X1 + X2) + 2) >> 2;
-    B4 = ((uint32_t)ac4 * (uint32_t)(X3 + 32768)) >> 15;
-    B7 = ((uint32_t)UP - B3) * (uint32_t)( 50000UL >> oversampling );
+    B4 = ((uint32_t)bmpx8x_ac4 * (uint32_t)(X3 + 32768)) >> 15;
+    B7 = ((uint32_t)UP - B3) * (uint32_t)( 50000UL >> bmpx8x_oversampling );
 
     if (B7 < 0x80000000) {
         p = (B7 * 2) / B4;
@@ -114,13 +114,13 @@ int32_t bmpx8x_getpressure () {
 int32_t bmpx8x_getpressureraw () {
     uint32_t raw;
 
-    bmpx8x_writereg (BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
+    bmpx8x_writereg (BMP085_CONTROL, BMP085_READPRESSURECMD + (bmpx8x_oversampling << 6));
 
-    if (oversampling == BMP085_ULTRALOWPOWER) {
+    if (bmpx8x_oversampling == BMP085_ULTRALOWPOWER) {
         usleep(5000);
-    } else if (oversampling == BMP085_STANDARD) {
+    } else if (bmpx8x_oversampling == BMP085_STANDARD) {
         usleep(8000);
-    } else if (oversampling == BMP085_HIGHRES) {
+    } else if (bmpx8x_oversampling == BMP085_HIGHRES) {
         usleep(14000);
     } else {
         usleep(26000);
@@ -130,7 +130,7 @@ int32_t bmpx8x_getpressureraw () {
 
     raw <<= 8;
     raw |= bmpx8x_readreg_8 (BMP085_PRESSUREDATA + 2);
-    raw >>= (8 - oversampling);
+    raw >>= (8 - bmpx8x_oversampling);
 
     return raw;
 }
@@ -170,8 +170,8 @@ float bmpx8x_getaltitude (float sealevelpressure) {
 }
 
 int32_t bmpx8x_computeB5 (int32_t UT) {
-    int32_t X1 = (UT - (int32_t)ac6) * ((int32_t)ac5) >> 15;
-    int32_t X2 = ((int32_t)mc << 11) / (X1+(int32_t)md);
+    int32_t X1 = (UT - (int32_t)bmpx8x_ac6) * ((int32_t)bmpx8x_ac5) >> 15;
+    int32_t X2 = ((int32_t)bmpx8x_mc << 11) / (X1+(int32_t)bmpx8x_md);
 
     return X1 + X2;
 }
@@ -181,8 +181,8 @@ int bmpx8x_writereg (uint8_t reg, uint8_t value) {
 
     uint8_t data[2] = { reg, value };
 
-    error = mraa_i2c_address(i2c, m_controlAddr);
-    error = mraa_i2c_write(i2c, data, 2);
+    error = mraa_i2c_address(bmpx8x_i2c, bmpx8x_m_controlAddr);
+    error = mraa_i2c_write(bmpx8x_i2c, data, 2);
 
     return error;
 }
@@ -190,11 +190,11 @@ int bmpx8x_writereg (uint8_t reg, uint8_t value) {
 uint16_t bmpx8x_readreg_16 (int reg) {
     uint16_t data;
 
-    mraa_i2c_address(i2c, m_controlAddr);
-    mraa_i2c_write_byte(i2c, reg);
+    mraa_i2c_address(bmpx8x_i2c, bmpx8x_m_controlAddr);
+    mraa_i2c_write_byte(bmpx8x_i2c, reg);
 
-    mraa_i2c_address(i2c, m_controlAddr);
-    mraa_i2c_read(i2c, (uint8_t *)&data, 0x2);
+    mraa_i2c_address(bmpx8x_i2c, bmpx8x_m_controlAddr);
+    mraa_i2c_read(bmpx8x_i2c, (uint8_t *)&data, 0x2);
 
     uint8_t high = (data & 0xFF00) >> 8;
     data = (data << 8) & 0xFF00;
@@ -206,11 +206,11 @@ uint16_t bmpx8x_readreg_16 (int reg) {
 uint8_t bmpx8x_readreg_8 (int reg) {
     uint8_t data;
 
-    mraa_i2c_address(i2c, m_controlAddr);
-    mraa_i2c_write_byte(i2c, reg);
+    mraa_i2c_address(bmpx8x_i2c, bmpx8x_m_controlAddr);
+    mraa_i2c_write_byte(bmpx8x_i2c, reg);
 
-    mraa_i2c_address(i2c, m_controlAddr);
-    mraa_i2c_read(i2c, &data, 0x1);
+    mraa_i2c_address(bmpx8x_i2c, bmpx8x_m_controlAddr);
+    mraa_i2c_read(bmpx8x_i2c, &data, 0x1);
 
     return data;
 }
