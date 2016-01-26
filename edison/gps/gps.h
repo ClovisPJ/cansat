@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <mraa.h>
-#include <time.h>
 #include <string.h>
 #include <gsl/gsl_vector.h>
+#include <time.h>
+
+#include <mraa.h>
 
 struct gps_exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_msec;        /* milliseconds,  range 0 to 999    */
@@ -14,18 +15,28 @@ struct gps_exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_year;        /* The number of years since 1900   */
   int tm_wday;        /* day of the week, range 0 to 6    */
   int tm_yday;        /* day in the year, range 0 to 365  */
-  int tm_isdst;       /* daylight saving time             */
 };
 
-struct tm gps_returntime;
-gsl_vector *gps_returnloc; //latitude then longitude
 mraa_uart_context gps_uart;
 mraa_gpio_context gps_gpio;
-char gps_buffer;
+
+char gps_line[100];
+struct gps_exttm gps_time;
+gsl_vector *gps_location;
+float gps_speed; // over ground, m/s
+float gps_course; // made good, true, degrees
+int gps_fix_quality; // 0 - no fix, 1 - GPS fix, 2 - DGPS fix
+int gps_satelites;
+float gps_hdop; // horizontal dilution of precision
+float gps_altitude; // metres
+float gps_ellipsoid_seperation; // height above WGS84 ellipsoid, metres
 
 int gps_init();
-int gps_locate();
+int gps_nmea(char *code);
+int gps_parse();
+
 int gps_chrtoint (char number);
-time_t gps_get_time();
-gsl_vector *gps_get_location();
 int gps_fix();
+
+int gps_wday(int year, int month, int day);
+int gps_yday(int year, int month, int day);
