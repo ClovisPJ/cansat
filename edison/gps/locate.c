@@ -11,8 +11,7 @@ int main() {
 
   while (1) {
     if (gps_fix()) {
-      gps_nmea("$GPRMC");
-      gps_parse();
+      gps__get_nmea("$GPRMC");
       gsl_vector *loc = gps_location;
       gsl_vector_fprintf(stdout, loc, "%f");
 

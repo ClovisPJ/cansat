@@ -23,7 +23,7 @@ int gps_init() {
   mraa_gpio_dir(gps_gpio, MRAA_GPIO_IN);
 }
 
-int gps_nmea(char *code) {
+int gps_get_nmea(char *code) {
   char buffer;
 
   for (int i = 0; i < 100; i++) { //this is abs max, incase gps is unplugged or broken
@@ -45,6 +45,7 @@ int gps_nmea(char *code) {
       if (strcmp(header,code) == 0) {
         strcpy(gps_line, line);
         return EXIT_SUCCESS;
+        gps_parse();
         break;
       }
     }
@@ -134,12 +135,12 @@ int gps_fix() {
   for (int i = 0; i < 100; i++) {
     val = mraa_gpio_read(gps_gpio);
     if (val == 1) {
-      return 0; 
+      return 0; // false: no fix
       break;
     }
     usleep(10000);
   }
-  return 1;
+  return 1; //true: fix
 }
 
 // http://rosettacode.org/wiki/Day_of_the_week#C

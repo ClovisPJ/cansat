@@ -32,7 +32,7 @@ float gps_altitude; // metres
 float gps_ellipsoid_seperation; // height above WGS84 ellipsoid, metres
 
 int gps_init();
-int gps_nmea(char *code);
+int gps_get_nmea(char *code);
 int gps_parse();
 
 int gps_chrtoint (char number);
