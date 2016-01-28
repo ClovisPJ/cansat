@@ -37,17 +37,23 @@ gsl_matrix *pseudo_inverse(gsl_matrix* input) {
 
 int main() {
 
-  int states = 6;
-  int unfiltered_states = 3;
+  int states = 2;
+  int unfiltered_states = 1;
 
   gsl_matrix *state_mean = gsl_matrix_calloc(states,1);
-  gsl_matrix_set(state_mean, 0,0, 1);
+  gsl_matrix_set(state_mean, 0,0, 3);
+  gsl_matrix_set(state_mean, 1,0, 3);
   gsl_matrix *state_covariance = gsl_matrix_calloc(states,states);
 
   gsl_matrix *observation_mean = gsl_matrix_calloc(states,1);
   gsl_matrix *observation_covariance = gsl_matrix_calloc(states,states);
-  gsl_matrix_set_all(observation_covariance, 1);
-
+  gsl_matrix_set(observation_covariance, 0, 0, 5);
+  gsl_matrix_set(observation_covariance, 1, 1, 5);
+  /*gsl_matrix_set(observation_covariance, 2, 2, 5);
+  gsl_matrix_set(observation_covariance, 3, 3, 5);
+  gsl_matrix_set(observation_covariance, 4, 4, 5);
+  gsl_matrix_set(observation_covariance, 5, 5, 5);
+*/
   gsl_matrix *observation_transformation = gsl_matrix_calloc(states,states);
   
   gsl_matrix *estimate_mean = gsl_matrix_calloc(states,1);
@@ -60,12 +66,12 @@ int main() {
   gsl_matrix *temp22b = gsl_matrix_calloc(states,states);
 
   gsl_matrix *predict = gsl_matrix_calloc(states,states);
-  gsl_matrix_set(predict, 0, 0, 1);
+  //gsl_matrix_set(predict, 0, 0, 1);
   gsl_matrix_set(predict, 1, 1, 1);
-  gsl_matrix_set(predict, 2, 2, 1);
+/*  gsl_matrix_set(predict, 2, 2, 1);
   gsl_matrix_set(predict, 3, 3, 1);
   gsl_matrix_set(predict, 4, 4, 1);
-  gsl_matrix_set(predict, 5, 5, 1);
+  gsl_matrix_set(predict, 5, 5, 1);*/
   //gsl_matrix_set(predict, 0, 3, timestep);
   //gsl_matrix_set(predict, 1, 4, timestep);
   //gsl_matrix_set(predict, 2, 5, timestep);
@@ -81,21 +87,28 @@ int main() {
   gsl_vector *acceleration = gsl_vector_calloc(unfiltered_states);
   gsl_vector *velocity = gsl_vector_calloc(unfiltered_states);
   gsl_vector *location = gsl_vector_calloc(unfiltered_states);
+  gsl_vector *delta_location = gsl_vector_calloc(unfiltered_states);
+  gsl_vector *temp_location = gsl_vector_calloc(unfiltered_states);
 
   double timestep;
 
   int s;
+  double error;
 
-  for (int t = 1; t < 100; t++) {
+  for (int t = 1; t < 1000000; t++) {
 
     timestep = 1;
-    gsl_vector_set(acceleration, 0, 1);
-    gsl_vector_set(acceleration, 1, 0);
-    gsl_vector_set(acceleration, 2, 0);
+    gsl_vector_set(acceleration, 0, (rand()%20)-10);
+    //gsl_vector_set(velocity, 1, 5);
+    //gsl_vector_set(velocity, 2, 2);
     gsl_vector_add(velocity, acceleration);
     gsl_vector_add(location, velocity);
 
-    gsl_matrix_set(predict, 0, 3, timestep);
+    gsl_vector_memcpy(delta_location, location);
+    gsl_vector_sub(delta_location, temp_location);
+    gsl_vector_memcpy(temp_location, location);
+
+    /*gsl_matrix_set(predict, 0, 3, timestep);
     gsl_matrix_set(predict, 1, 4, timestep);
     gsl_matrix_set(predict, 2, 5, timestep);
     gsl_matrix_set(control, 0, 0, 0.5*pow(timestep,2));
@@ -103,16 +116,19 @@ int main() {
     gsl_matrix_set(control, 2, 2, 0.5*pow(timestep,2));
     gsl_matrix_set(control, 3, 0, timestep);
     gsl_matrix_set(control, 4, 1, timestep);
-    gsl_matrix_set(control, 5, 2, timestep);
+    gsl_matrix_set(control, 5, 2, timestep);*/
+    gsl_matrix_set(predict, 0, 1, timestep);
+    gsl_matrix_set(control, 0, 0, 0.5*pow(timestep,2));
+    gsl_matrix_set(control, 1, 0, timestep);
 
     //observation_transformation = observation_mean[k] * pseudoinverse(state_mean[k-1])
     gsl_matrix_set_zero(temp21a);
-    gsl_matrix_set(temp21a, 0, 0, gsl_vector_get(location,0));
-    gsl_matrix_set(temp21a, 1, 0, gsl_vector_get(location,1));
-    gsl_matrix_set(temp21a, 2, 0, gsl_vector_get(location,2));
-    gsl_matrix_set(temp21a, 3, 0, gsl_vector_get(velocity,0));
-    gsl_matrix_set(temp21a, 4, 0, gsl_vector_get(velocity,1));
-    gsl_matrix_set(temp21a, 5, 0, gsl_vector_get(velocity,2));
+    gsl_matrix_set(temp21a, 0, 0, gsl_vector_get(delta_location,0));
+    //gsl_matrix_set(temp21a, 1, 0, gsl_vector_get(location,1));
+    //gsl_matrix_set(temp21a, 2, 0, gsl_vector_get(location,2));
+    gsl_matrix_set(temp21a, 1, 0, gsl_vector_get(velocity,0));
+    //gsl_matrix_set(temp21a, 4, 0, gsl_vector_get(velocity,1));
+    //gsl_matrix_set(temp21a, 5, 0, gsl_vector_get(velocity,2));
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1, temp21a, pseudo_inverse(state_mean), 0, observation_transformation);
 
     //observation_mean[k] = observation_transformation * state_mean[k-1]
@@ -143,10 +159,9 @@ int main() {
     //kalman_gain = estimate_covariance * pseudoinverse(estimate_covariance + observation_covariance);
     gsl_matrix_set_zero(kalman_gain);
     gsl_matrix_set_zero(temp22a);
-    gsl_matrix_set_zero(temp22b);
     gsl_matrix_memcpy(temp22a, observation_covariance);
     gsl_matrix_add(temp22a, estimate_covariance);
-    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1, estimate_covariance, pseudo_inverse(temp22b), 0, kalman_gain);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1, estimate_covariance, pseudo_inverse(temp22a), 0, kalman_gain);
     
     //state_mean = estimate_mean +  kalman_gain * ( observation_mean - estimate_mean );
     gsl_matrix_set_zero(state_mean);
@@ -165,19 +180,31 @@ int main() {
 
     printf("state_mean:");
     gsl_matrix_fprintf(stdout, state_mean, "%f");
-/*    printf("state_covariance:");
+    printf("state_covariance:");
     gsl_matrix_fprintf(stdout, state_covariance, "%f");
-*/
+
     printf("observation_mean:");
     gsl_matrix_fprintf(stdout, observation_mean, "%f");
-/*    printf("observation_covariance:");
+    printf("observation_covariance:");
     gsl_matrix_fprintf(stdout, observation_covariance, "%f");
-*/
+
     printf("estimate_mean:");
     gsl_matrix_fprintf(stdout, estimate_mean, "%f");
-/*    printf("estimate_covariance:");
+    printf("estimate_covariance:");
     gsl_matrix_fprintf(stdout, estimate_covariance, "%f");
-*/
+
+    gsl_matrix_set_zero(temp21a);
+    gsl_matrix_memcpy(temp21a, observation_mean);
+    gsl_matrix_sub(temp21a, state_mean);
+    gsl_matrix_div_elements(temp21a, observation_mean);
+    gsl_matrix_mul_elements(temp21a, temp21a);
+
+    for (int i = states-1; i >= 0; i--) {
+      error += gsl_matrix_get(temp21a, i, 0); 
+    }
+
+ //   printf("error: %f\n", error);
+    printf("error/time: %f\n", error/t);
     printf("\n");
 
     usleep(1000000);
