@@ -4,214 +4,131 @@
 #include <gsl/gsl_matrix.h>
 #include <math.h>
 #include <limits.h>
-#include "mraa.h"
+#include <string.h>
+#include <stdint.h>
 
-#if 0
-struct packtm {
-   int tm_sec : 7;        /* seconds,  range 0 to 59          */
-   int tm_min : 7;         /* minutes, range 0 to 59           */
-   int tm_hour : 5;        /* hours, range 0 to 23             */
-   int tm_mday : 5;        /* day of the month, range 1 to 31  */
-   int tm_mon : 5;         /* month, range 0 to 11             */
-   int tm_year : 8;        /* The number of years since 1900   */
-   int tm_wday : 3;        /* day of the week, range 0 to 6    */
-   int tm_yday : 9;        /* day in the year, range 0 to 365  */
-   int tm_isdst : 1;       /* daylight saving time             */
-   /*50 bits, using 2 ints*/
-};
-#endif
+#include "comms.h"
 
-#pragma pack(push) //pragma is needed to remove padding (extra spacing)
-#pragma pack(1)
-struct Packet {
-  struct tm time;
-  int type;
-  int data[3];
-};
-#pragma pack(pop)
+typedef uint8_t encoded_word;
 
-union Changeform {
-  struct Packet packet;
-  unsigned char values[sizeof(struct Packet)/sizeof(char)];
-};
+//#include <mraa.h>
 
-int sendEncodedMessage(struct Packet,int);
-struct Packet receiveEncodedMessage(int);
-int sendMessage(struct Packet);
-struct Packet receiveMessage();
-int hammingdistance(unsigned long, unsigned long);
-unsigned long *hadamard(int);
-gsl_matrix *KPro(gsl_matrix *, gsl_matrix *);
-int printbin(unsigned long);
-
-int main() {
-
-  clock_t rawtime = time(NULL);
-  int type = 1;
-  int input[] = {1,-2,-1};
-
-  struct Packet pck;
-  pck.time = *localtime(&rawtime);
-  pck.type = type;
-
-  int len = sizeof(input)/sizeof(input[0]);
-  for (int i = 0; i < len; i++) {
-    pck.data[i] = input[i];
-  }
-
-  // 6 <= codelen <= 2 
-  //TODO: allow 7 (should work as fits lu, and allow 1. broken due to codes generated incorrectly
-  sendMessage(pck);
-  //receiveMessage();
-
-  //sendMessage(receiveMessage(256),256);
-
-  return EXIT_SUCCESS;
-}
-
-int sendMessage(struct Packet pck) {
+/*int comms_sendMessage(char* buffer, int len) {
   mraa_uart_context uart;
-  uart = mraa_uart_init(0);
+  uart = mraa_uart_init_raw(0);
   if (uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
     return EXIT_FAILURE;
   }
-  union Changeform toSend;
-  toSend.packet = pck;
-  mraa_uart_write(uart, toSend.values, sizeof(toSend.values));
+  mraa_uart_write(uart, buffer, len);
   mraa_uart_stop(uart);
   mraa_deinit();
   return EXIT_SUCCESS;
 }
 
-struct Packet receiveMessage() {
+char *comms_receiveMessage(int len) {
   mraa_uart_context uart;
   uart = mraa_uart_init(0);
   if (uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
     //return EXIT_FAILURE;
   }
-  union Changeform received;
-  mraa_uart_read(uart, received.values, sizeof(received.values));
+  char *buffer
+  mraa_uart_read(uart, buffer, len);
   mraa_uart_stop(uart);
   mraa_deinit();
-  return received.packet;
+  return buffer;
+}*/
+
+int comms_sendMessage(char *buffer, int len) {
+
+  FILE *uart;
+  uart = fopen(comms_address, "w");
+
+  buffer[len] = '\0';
+  fputs(buffer, uart);
+
+  fclose(uart);
+  return EXIT_SUCCESS;
 }
 
-int sendEncodedMessage(struct Packet pck, int codelen) {
+char *comms_receiveMessage(int len) {
 
-  union Changeform toSend;
-  toSend.packet = pck;
-  for (int i = 0; i < sizeof(struct Packet); i++) {
-    toSend.values[i] = 255;
-  }
+  FILE *uart;
+  uart = fopen(comms_address, "r");
 
-  unsigned long *had;
-  had = hadamard(codelen); //codelen is max length of input
-  int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
+  char *buffer;
+  fgets(buffer, len, uart);
+
+  fclose(uart);
+  return buffer;
+}
+
+char *comms_EncodeMessage(struct comms_Packet pck) {
+
+  int pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
+
+  union {
+    struct comms_Packet packet;
+    unsigned char values[sizeof(struct comms_Packet)];
+  } conv;
+  conv.packet = pck;
+
+  encoded_word *had;
+  had = comms_hadamard(comms_codelen); //comms_codelen is max length of input
 
   struct {
     unsigned char bit : 1;
-  } bits[sizeof(struct Packet)*CHAR_BIT];
-  for (int i = 0; i < sizeof(struct Packet); i++) {
+  } bits[sizeof(struct comms_Packet)*CHAR_BIT];
+
+  for (int i = 0; i < sizeof(struct comms_Packet); i++) {
     for (int j = CHAR_BIT-1; j >= 0; j--) {
-      bits[i*CHAR_BIT+(CHAR_BIT-(j+1))].bit = (toSend.values[i] >> j)&1;
+      bits[i*CHAR_BIT+(CHAR_BIT-(j+1))].bit = (conv.values[i] >> j)&1;
     }
-  }
+  } 
 
-  /*for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
-    printf("%d",bits[i].bit);
-  }
-  printf("\n");
-  printf("\n");*/
-
-  unsigned long unencoded[pckcodes];
+  encoded_word unencoded[pckcodes];
   for (int i = 0; i < pckcodes; i++) {
     unencoded[i] = 0;
-    for (int j = 0; j < codelen; j++) {
+    for (int j = 0; j < comms_codelen; j++) {
       unencoded[i] <<= 1;
-      unencoded[i] += bits[i*codelen+j].bit;
+      unencoded[i] += bits[i*comms_codelen+j].bit;
     }
   }
 
-  /*for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
-    printbin(unencoded[i]);
-    printf("\n");
-  }
-  printf("\n");
-  printf("\n");*/
-
   union {
-    unsigned long codes[pckcodes];
-    unsigned char values[sizeof(unsigned long)*pckcodes];
+    encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
+    unsigned char values[(int)pow(2,comms_codelen-1)*pckcodes];
   } encoded;
+
   for (int i = 0; i < pckcodes; i++) {
     encoded.codes[i] = 0;
     encoded.codes[i] = had[unencoded[i]];
   }
-  /*for (int i = 0; i < sizeof(encoded.codes)/sizeof(encoded.codes[0]); i++) {
-    printbin(encoded.codes[i]);
-    printf("\n");
-  }
-  printf("\n");
-  printf("\n");*/
 
-  mraa_uart_context uart;
-  uart = mraa_uart_init(0);
-  if (uart == NULL) {
-    fprintf(stderr, "UART failed to setup\n");
-    return EXIT_FAILURE;
-  }
-  mraa_uart_write(uart, encoded.values, sizeof(encoded.values));
-  mraa_uart_stop(uart);
-  mraa_deinit();
-
-/*  struct tm *timeinfo;
-  timeinfo = &toSend.packet.time;
-  printf("%s",asctime(timeinfo)); */
-
-  return EXIT_SUCCESS;
+  return strdup(encoded.values);
 }
 
-struct Packet receiveEncodedMessage(int codelen) {
-  union Changeform received;
-  int pckcodes = (sizeof(struct Packet)*CHAR_BIT)/codelen;
+struct comms_Packet comms_DecodeMessage(char *buffer) {
+
+  int pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
 
   union {
-    unsigned long codes[pckcodes];
-    unsigned char values[sizeof(unsigned long)*pckcodes];
+    encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
+    unsigned char values[(int)pow(2,comms_codelen-1)*pckcodes];
   } encoded;
-  unsigned long *had;
-  had = hadamard(codelen); //codelen is max length of input
+  strncpy(encoded.values, buffer, pow(2,comms_codelen-1)*pckcodes);
 
-  mraa_uart_context uart;
-  uart = mraa_uart_init(0);
-  if (uart == NULL) {
-    fprintf(stderr, "UART failed to setup\n");
-    //return EXIT_FAILURE;
-  }
-  mraa_uart_read(uart, encoded.values, sizeof(received.values));
-  mraa_uart_stop(uart);
-  mraa_deinit();
+  encoded_word *had;
+  had = comms_hadamard(comms_codelen); //comms_codelen is max length of input
 
-  /*for (int i = 0; i < pckcodes; i++) {
-    encoded.codes[i] = 0;
-    encoded.codes[i] = had[(int)pow(2,codelen)-1]; //fake from receiver
-  }*/
-  /*for (int i = 0; i < sizeof(encoded.codes)/sizeof(encoded.codes[0]); i++) {
-    printbin(encoded.codes[i]);
-    printf("\n");
-  }
-  printf("\n");
-  printf("\n");*/
-
-  unsigned long unencoded[pckcodes];
+  encoded_word unencoded[pckcodes];
   
   for (int i = 0; i < pckcodes; i++) {
-    int min = pow(2,codelen-1);
+    int min = pow(2,comms_codelen-1);
     int imin = 0;
-    for (int k = 0; k < pow(2,codelen); k++) {
-      int hd = hammingdistance(encoded.codes[i],had[k]);
+    for (int k = 0; k < pow(2,comms_codelen); k++) {
+      int hd = comms_hammingdistance(encoded.codes[i],had[k]);
       //printf("\nhd = %d",hd);
       if (hd < min) {
         min = hd;
@@ -223,42 +140,34 @@ struct Packet receiveEncodedMessage(int codelen) {
     //printf("hamdist: %d\n",min);
   }
 
-  /*for (int i = 0; i < sizeof(unencoded)/sizeof(unencoded[0]); i++) {
-    printbin(unencoded[i]);
-    printf("\n");
-  }
-  printf("\n");
-  printf("\n");*/
-
   struct {
     unsigned char bit : 1;
-  } bits[sizeof(struct Packet)*CHAR_BIT];
+  } bits[sizeof(struct comms_Packet)*CHAR_BIT];
 
   for (int i = 0; i < pckcodes; i++) {
-      for (int j = codelen-1; j >= 0 ; j--) {
-        bits[codelen*i+(codelen-(j+1))].bit = (unencoded[i]>>j)&1;
+      for (int j = comms_codelen-1; j >= 0 ; j--) {
+        bits[comms_codelen*i+(comms_codelen-(j+1))].bit = (unencoded[i]>>j)&1;
       }
   }
 
-  /*for (int i = 0; i < sizeof(bits)/sizeof(bits[0]); i++) {
-    printf("%d",bits[i].bit);
-  }
-  printf("\n");
-  printf("\n");*/
+  union {
+    struct comms_Packet packet;
+    unsigned char values[sizeof(struct comms_Packet)];
+  } conv;
 
-  for (int i = 0; i < sizeof(received.values)/sizeof(received.values[0]); i++) {
+  for (int i = 0; i < sizeof(conv.values); i++) {
     for (int j = CHAR_BIT-1; j >= 0; j--) {
-      received.values[i] <<= 1;
-      received.values[i] += bits[i*CHAR_BIT+j].bit;
+      conv.values[i] <<= 1;
+      conv.values[i] += bits[i*CHAR_BIT+j].bit;
     }
   }
 
-  return received.packet;
+  return conv.packet;
 }
 
 
-int hammingdistance(unsigned long a, unsigned long b) {
-  unsigned long z = a^b;
+int comms_hammingdistance(encoded_word a, encoded_word b) {
+  encoded_word z = a^b;
   int n = 0;
   while (z) {
     if (z&1){
@@ -269,7 +178,7 @@ int hammingdistance(unsigned long a, unsigned long b) {
   return n;
 }
 
-unsigned long *hadamard(int codelen) {
+encoded_word *comms_hadamard(int comms_codelen) {
   gsl_matrix *initTop = gsl_matrix_alloc(2,2);
   initTop->tda = 2;
   gsl_matrix_set(initTop,0,0,1); //start of top half with matrix:
@@ -281,8 +190,8 @@ unsigned long *hadamard(int codelen) {
   matrixTop->tda = 1;
   gsl_matrix_set(matrixTop,0,0,1);
 
-  for (int i = 0; i < codelen-1; i++) { //codelen is -1 as t&b allow *2 the codes
-    matrixTop = KPro(matrixTop,initTop);
+  for (int i = 0; i < comms_codelen-1; i++) { //comms_codelen is -1 as t&b allow *2 the codes
+    matrixTop = comms_KPro(matrixTop,initTop);
   }
 
   gsl_matrix *initBottom = gsl_matrix_alloc(2,2);
@@ -296,44 +205,44 @@ unsigned long *hadamard(int codelen) {
   matrixBottom->tda = 1;
   gsl_matrix_set(matrixBottom,0,0,1);
 
-  for (int i = 0; i < codelen-1; i++) {
-    matrixBottom = KPro(matrixBottom,initBottom);
+  for (int i = 0; i < comms_codelen-1; i++) {
+    matrixBottom = comms_KPro(matrixBottom,initBottom);
   }
 
-  unsigned long *hadamard  = (unsigned long*) malloc(sizeof(unsigned long)*pow(2,codelen));
+  encoded_word *comms_hadamard  = (encoded_word*) malloc(sizeof(encoded_word)*pow(2,comms_codelen));
   double value;
 
-  for (int i = 0; i < pow(2,codelen); i++) {
-    *(hadamard+i) = 0;
-    for (int j = 0; j < pow(2,codelen-1); j++) {
-      *(hadamard+i) <<= 1;
-      if (i < pow(2,codelen-1)) {
+  for (int i = 0; i < pow(2,comms_codelen); i++) {
+    *(comms_hadamard+i) = 0;
+    for (int j = 0; j < pow(2,comms_codelen-1); j++) {
+      *(comms_hadamard+i) <<= 1;
+      if (i < pow(2,comms_codelen-1)) {
         value = gsl_matrix_get(matrixTop,i,j);
       } else {
-        value = gsl_matrix_get(matrixBottom,i-pow(2,codelen-1),j);
+        value = gsl_matrix_get(matrixBottom,i-pow(2,comms_codelen-1),j);
       }
       if (value == 1) {
-        *(hadamard+i) += 1;
+        *(comms_hadamard+i) += 1;
         printf("1");
       } else {
         printf("0");
       }
     }
-    //printf(" %lu ",*(hadamard+i));
+    //printf(" %lu ",*(comms_hadamard+i));
     printf("\n");
   }
   printf("\n");
   printf("\n");
 
-  unsigned long *p;
-  p = hadamard;
+  encoded_word *p;
+  p = comms_hadamard;
 
   return p;
 }
 
 /*sourced from https://stackoverflow.com/questions/13722543/efficient-way-to-compute-kronecker-product-of-matrices-with-gsl*/
 
-gsl_matrix *KPro(gsl_matrix *a, gsl_matrix *b) {
+gsl_matrix *comms_KPro(gsl_matrix *a, gsl_matrix *b) {
     int i, j, k, l;
     int m, p, n, q;
     m = a->size1;
@@ -359,8 +268,8 @@ gsl_matrix *KPro(gsl_matrix *a, gsl_matrix *b) {
     return c;
 }
 
-int printbin (long unsigned dec) {
-  for (int i = (CHAR_BIT*sizeof(long unsigned))-1; i >= 0; i--) {
+int comms_printbin (encoded_word dec) {
+  for (int i = (CHAR_BIT*sizeof(encoded_word))-1; i >= 0; i--) {
     if (((dec>>i)&1)==1) {
       printf("1");
     } else {
