@@ -6,62 +6,74 @@
 #include <limits.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "comms.h"
 
 typedef uint8_t encoded_word;
 
-//#include <mraa.h>
+int comms_sendMessage(char *data, int len) {
 
-/*int comms_sendMessage(char* buffer, int len) {
-  mraa_uart_context uart;
-  uart = mraa_uart_init_raw(0);
-  if (uart == NULL) {
-    fprintf(stderr, "UART failed to setup\n");
-    return EXIT_FAILURE;
-  }
-  mraa_uart_write(uart, buffer, len);
-  mraa_uart_stop(uart);
-  mraa_deinit();
-  return EXIT_SUCCESS;
-}
+  int uart;
+  uart = open(comms_address, O_WRONLY);
+  char *header = "$ZYSK";
+  int header_len = 5;
 
-char *comms_receiveMessage(int len) {
-  mraa_uart_context uart;
-  uart = mraa_uart_init(0);
-  if (uart == NULL) {
-    fprintf(stderr, "UART failed to setup\n");
-    //return EXIT_FAILURE;
-  }
-  char *buffer
-  mraa_uart_read(uart, buffer, len);
-  mraa_uart_stop(uart);
-  mraa_deinit();
-  return buffer;
-}*/
+  char *buffer = malloc(len+header_len);
+  strncpy(buffer+header_len, data, len);
+  strncpy(buffer, header, header_len);
+  write(uart, buffer, len+header_len);
 
-int comms_sendMessage(char *buffer, int len) {
-
-  FILE *uart;
-  uart = fopen(comms_address, "w");
-
-  buffer[len] = '\0';
-  fputs(buffer, uart);
-
-  fclose(uart);
+  close(uart);
   return EXIT_SUCCESS;
 }
 
 char *comms_receiveMessage(int len) {
 
-  FILE *uart;
-  uart = fopen(comms_address, "r");
+  int uart;
+  uart = open(comms_address, O_RDONLY);
+  char *header = "$ZYSK";
+  int header_len = 5;
+  char *data = malloc(len);
 
-  char *buffer;
-  fgets(buffer, len, uart);
+  char *buffer = malloc(len+header_len);
+  for (int i = 0; i < 20; i++) {
+    read(uart, buffer, len+header_len);
+    if (strncmp(buffer, header, header_len)) {
+      strncpy(data, buffer, len+header_len); 
+      break;
+      puts("gotcha");
+    }
+    usleep(500000);
+  }
 
-  fclose(uart);
-  return buffer;
+  close(uart);
+  return data;
+}
+
+char *comms_PackMessage(struct comms_Packet pck) {
+
+  union {
+    struct comms_Packet packet;
+    char values[sizeof(struct comms_Packet)];
+  } conv;
+  conv.packet = pck;
+
+  return strndup(conv.values, sizeof(struct comms_Packet));
+
+}
+
+struct comms_Packet comms_UnpackMessage(char *values) {
+
+  union {
+    struct comms_Packet packet;
+    char values[sizeof(struct comms_Packet)];
+  } conv;
+  strncpy(conv.values, values, sizeof(struct comms_Packet));
+
+  return conv.packet;
+
 }
 
 char *comms_EncodeMessage(struct comms_Packet pck) {
@@ -70,7 +82,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
 
   union {
     struct comms_Packet packet;
-    unsigned char values[sizeof(struct comms_Packet)];
+    char values[sizeof(struct comms_Packet)];
   } conv;
   conv.packet = pck;
 
@@ -78,7 +90,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
   had = comms_hadamard(comms_codelen); //comms_codelen is max length of input
 
   struct {
-    unsigned char bit : 1;
+    char bit : 1;
   } bits[sizeof(struct comms_Packet)*CHAR_BIT];
 
   for (int i = 0; i < sizeof(struct comms_Packet); i++) {
@@ -98,7 +110,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
 
   union {
     encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
-    unsigned char values[(int)pow(2,comms_codelen-1)*pckcodes];
+    char values[(int)(pow(2,comms_codelen-1)*pckcodes)];
   } encoded;
 
   for (int i = 0; i < pckcodes; i++) {
@@ -106,7 +118,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
     encoded.codes[i] = had[unencoded[i]];
   }
 
-  return strdup(encoded.values);
+  return strndup(encoded.values, (pow(2,comms_codelen-1)*pckcodes));
 }
 
 struct comms_Packet comms_DecodeMessage(char *buffer) {
@@ -115,7 +127,7 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
 
   union {
     encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
-    unsigned char values[(int)pow(2,comms_codelen-1)*pckcodes];
+    char values[(int)(pow(2,comms_codelen-1)*pckcodes)];
   } encoded;
   strncpy(encoded.values, buffer, pow(2,comms_codelen-1)*pckcodes);
 
@@ -141,7 +153,7 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
   }
 
   struct {
-    unsigned char bit : 1;
+    char bit : 1;
   } bits[sizeof(struct comms_Packet)*CHAR_BIT];
 
   for (int i = 0; i < pckcodes; i++) {
@@ -152,7 +164,7 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
 
   union {
     struct comms_Packet packet;
-    unsigned char values[sizeof(struct comms_Packet)];
+    char values[sizeof(struct comms_Packet)];
   } conv;
 
   for (int i = 0; i < sizeof(conv.values); i++) {
