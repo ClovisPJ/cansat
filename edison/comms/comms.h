@@ -2,32 +2,42 @@
 #include <gsl/gsl_matrix.h>
 #include <limits.h>
 #include <stdint.h>
+#include "exttm.h"
 
 typedef uint8_t encoded_word;
 
 #pragma pack(push) //pragma is needed to remove padding (extra spacing)
 #pragma pack(1)
 struct comms_Packet {
-  //int8_t time;
-  //int8_t data[3];
+//  int8_t time;
+//  int8_t data[3];
   float acc[3];
   int scale;
 
   uint32_t pressure;
   float temperature1;
-  float altitude;
+  float altitude1;
   uint32_t sealevel;
 
   float humidity;
   float temperature2;
   float compRH;
 
-  struct tm time;
-  struct gps_exttm exttm;
+ // struct tm time;
+  struct gps_exttm time;
+
+  gsl_vector location;
+  float speed;
+  float course;
+  int fix_quality;
+  int satelites;
+  float hdop;
+  float altitude2;
+  float ellipsoid_seperation;
 };
 #pragma pack(pop)
 
-char comms_address[20];
+char comms_address[30];
 int comms_codelen; // 6 <= codelen <= 1 in bits
 
 int comms_sendMessage(char *buffer, int len);

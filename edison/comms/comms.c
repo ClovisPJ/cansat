@@ -21,8 +21,8 @@ int comms_sendMessage(char *data, int len) {
   int header_len = 5;
 
   char *buffer = malloc(len+header_len);
-  strncpy(buffer+header_len, data, len);
   strncpy(buffer, header, header_len);
+  strncpy(buffer+header_len, data, len);
   write(uart, buffer, len+header_len);
 
   close(uart);
@@ -33,19 +33,22 @@ char *comms_receiveMessage(int len) {
 
   int uart;
   uart = open(comms_address, O_RDONLY);
-  char *header = "$ZYSK";
-  int header_len = 5;
+  char *header = "ZYSK";
+  int header_len = 4;
   char *data = malloc(len);
 
-  char *buffer = malloc(len+header_len);
-  for (int i = 0; i < 20; i++) {
-    read(uart, buffer, len+header_len);
-    if (strncmp(buffer, header, header_len)) {
-      strncpy(data, buffer, len+header_len); 
-      break;
-      puts("gotcha");
+  char *buffer = malloc(1);
+  while (1) {
+    read(uart, buffer, 1);
+    if (*buffer == (int)'$') {
+      buffer = malloc(len+header_len);
+      read(uart, buffer, len+header_len);
+      if (strncmp(buffer, header, header_len) == 0) {
+        strncpy(data, buffer+header_len, len); 
+        break;
+      }
+      //usleep(500000);
     }
-    usleep(500000);
   }
 
   close(uart);
@@ -104,7 +107,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
     unencoded[i] = 0;
     for (int j = 0; j < comms_codelen; j++) {
       unencoded[i] <<= 1;
-      unencoded[i] += bits[i*comms_codelen+j].bit;
+      unencoded[i] += (bits[i*comms_codelen+j].bit)&1;
     }
   }
 
@@ -118,7 +121,7 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
     encoded.codes[i] = had[unencoded[i]];
   }
 
-  return strndup(encoded.values, (pow(2,comms_codelen-1)*pckcodes));
+  return strndup(encoded.values, pow(2,comms_codelen-1)*pckcodes);
 }
 
 struct comms_Packet comms_DecodeMessage(char *buffer) {
@@ -235,16 +238,16 @@ encoded_word *comms_hadamard(int comms_codelen) {
       }
       if (value == 1) {
         *(comms_hadamard+i) += 1;
-        printf("1");
+        //printf("1");
       } else {
-        printf("0");
+        //printf("0");
       }
     }
     //printf(" %lu ",*(comms_hadamard+i));
-    printf("\n");
+    //printf("\n");
   }
-  printf("\n");
-  printf("\n");
+  //printf("\n");
+  //printf("\n");
 
   encoded_word *p;
   p = comms_hadamard;
