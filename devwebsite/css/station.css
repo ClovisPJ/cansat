@@ -1,4 +1,42 @@
+html{
+  overflow: hidden;
+}
+
 #googleMap{
-  height: 380px;
-  width: 500px;
+  position: absolute;
+  height: 50%;
+  width: 30%;
+  right: 0;
+  left: 70%;
+}
+
+#charts{
+  position: absolute;
+  width: 70%;
+  height: 100%;
+}
+
+#gauges{
+  position: absolute;
+  width: 30%;
+  height: 50%;
+  left: 70%;
+  top: 50%;
+}
+
+#humidity{
+  height: 33%;
+}
+
+#temperature{
+  height: 33%;
+}
+
+#velocity{
+  height: 33%;
+}
+
+#co{
+  height: 50%;
+  width : 50%;
 }
