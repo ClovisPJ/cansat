@@ -21,8 +21,8 @@ int comms_sendMessage(char *data, int len) {
   int header_len = 5;
 
   char *buffer = malloc(len+header_len);
-  strncpy(buffer, header, header_len);
-  strncpy(buffer+header_len, data, len);
+  memcpy(buffer, header, header_len);
+  memcpy(buffer+header_len, data, len);
   write(uart, buffer, len+header_len);
 
   close(uart);
@@ -43,8 +43,8 @@ char *comms_receiveMessage(int len) {
     if (*buffer == (int)'$') {
       buffer = malloc(len+header_len);
       read(uart, buffer, len+header_len);
-      if (strncmp(buffer, header, header_len) == 0) {
-        strncpy(data, buffer+header_len, len); 
+      if (memcmp(buffer, header, header_len) == 0) {
+        memcpy(data, buffer+header_len, len); 
         break;
       }
       //usleep(500000);
@@ -63,8 +63,9 @@ char *comms_PackMessage(struct comms_Packet pck) {
   } conv;
   conv.packet = pck;
 
-  return strndup(conv.values, sizeof(struct comms_Packet));
-
+  char *ret = malloc(sizeof(struct comms_Packet));
+  memcpy(ret, conv.values, sizeof(struct comms_Packet));
+  return ret;
 }
 
 struct comms_Packet comms_UnpackMessage(char *values) {
@@ -73,7 +74,7 @@ struct comms_Packet comms_UnpackMessage(char *values) {
     struct comms_Packet packet;
     char values[sizeof(struct comms_Packet)];
   } conv;
-  strncpy(conv.values, values, sizeof(struct comms_Packet));
+  memcpy(conv.values, values, sizeof(struct comms_Packet));
 
   return conv.packet;
 
@@ -124,8 +125,9 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
     }
   }
 
-  int num = pow(2,comms_codelen-1)*pckcodes;
-  return strndup(encoded.values, num/CHAR_BIT);
+  char *ret = malloc(pow(2,comms_codelen-1)*pckcodes/CHAR_BIT);
+  memcpy(ret, encoded.values, pow(2,comms_codelen-1)*pckcodes/CHAR_BIT);
+  return ret;
 }
 
 struct comms_Packet comms_DecodeMessage(char *buffer) {
@@ -136,7 +138,7 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
     encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
     char values[(int)(pow(2,comms_codelen-1)*pckcodes)];
   } encoded;
-  strncpy(encoded.values, buffer, pow(2,comms_codelen-1)*pckcodes);
+  memcpy(encoded.values, buffer, pow(2,comms_codelen-1)*pckcodes);
 
   int **hadamard;
   hadamard = comms_hadamard(comms_codelen); //comms_codelen is max length of input
@@ -177,6 +179,7 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
   } conv;
 
   for (int i = 0; i < sizeof(struct comms_Packet); i++) {
+    conv.values[i] = 0;
     for (int j = 0; j < CHAR_BIT; j++) {
       conv.values[i] += bits[i*CHAR_BIT+j] << (CHAR_BIT-1-j);
     }

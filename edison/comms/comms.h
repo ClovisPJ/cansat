@@ -9,8 +9,6 @@ typedef uint8_t encoded_word;
 #pragma pack(push) //pragma is needed to remove padding (extra spacing)
 #pragma pack(1)
 struct comms_Packet {
-//  int8_t time;
-//  uint8_t data[3];
   float acc[3];
   int scale;
 
