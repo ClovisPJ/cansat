@@ -89,39 +89,43 @@ char *comms_EncodeMessage(struct comms_Packet pck) {
   } conv;
   conv.packet = pck;
 
-  encoded_word *had;
-  had = comms_hadamard(comms_codelen); //comms_codelen is max length of input
-
-  struct {
-    char bit : 1;
-  } bits[sizeof(struct comms_Packet)*CHAR_BIT];
+  int bits[sizeof(struct comms_Packet)*CHAR_BIT];
 
   for (int i = 0; i < sizeof(struct comms_Packet); i++) {
     for (int j = CHAR_BIT-1; j >= 0; j--) {
-      bits[i*CHAR_BIT+(CHAR_BIT-(j+1))].bit = (conv.values[i] >> j)&1;
+      bits[i*CHAR_BIT+(CHAR_BIT-(j+1))] = (conv.values[i] >> j)&1;
     }
   } 
 
-  encoded_word unencoded[pckcodes];
+
+  int unencoded[pckcodes][comms_codelen];
   for (int i = 0; i < pckcodes; i++) {
-    unencoded[i] = 0;
     for (int j = 0; j < comms_codelen; j++) {
-      unencoded[i] <<= 1;
-      unencoded[i] += (bits[i*comms_codelen+j].bit)&1;
+      unencoded[i][j] = (bits[j+i*comms_codelen])&1;
     }
   }
 
   union {
     encoded_word codes[pckcodes];// : int(pow(2,comms_codelen-1));
-    char values[(int)(pow(2,comms_codelen-1)*pckcodes)];
+    char values[(int)(pow(2,comms_codelen-1)*pckcodes/CHAR_BIT)];
   } encoded;
 
+  int **hadamard;
+  hadamard = comms_hadamard(comms_codelen); //comms_codelen is max length of input
+
   for (int i = 0; i < pckcodes; i++) {
+    int index = 0; // max is 2^comms_codelen
+    for (int j = 0; j < comms_codelen; j++) { // get index of code
+      index += (unencoded[i][comms_codelen-1-j]<<j);
+    }
     encoded.codes[i] = 0;
-    encoded.codes[i] = had[unencoded[i]];
+    for (int j = 0; j < pow(2, comms_codelen-1); j++) { // get code from index
+      encoded.codes[i] += (hadamard[index][(int)pow(2,comms_codelen-1)-j-1]<<j);
+    }
   }
 
-  return strndup(encoded.values, pow(2,comms_codelen-1)*pckcodes);
+  int num = pow(2,comms_codelen-1)*pckcodes;
+  return strndup(encoded.values, num/CHAR_BIT);
 }
 
 struct comms_Packet comms_DecodeMessage(char *buffer) {
@@ -134,20 +138,24 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
   } encoded;
   strncpy(encoded.values, buffer, pow(2,comms_codelen-1)*pckcodes);
 
-  encoded_word *had;
-  had = comms_hadamard(comms_codelen); //comms_codelen is max length of input
+  int **hadamard;
+  hadamard = comms_hadamard(comms_codelen); //comms_codelen is max length of input
 
-  encoded_word unencoded[pckcodes];
-  
+  int unencoded[pckcodes]; // max is comms_codelen
+
   for (int i = 0; i < pckcodes; i++) {
-    int min = pow(2,comms_codelen-1);
+    int min = pow(2,comms_codelen-1); // max error is this, but any big number is fine
     int imin = 0;
-    for (int k = 0; k < pow(2,comms_codelen); k++) {
-      int hd = comms_hammingdistance(encoded.codes[i],had[k]);
+    for (int j = 0; j < pow(2,comms_codelen); j++) {
+      encoded_word had = 0;
+      for (int k = 0; k < pow(2,comms_codelen-1); k++) { // get j'th code
+        had += (hadamard[j][(int)pow(2,comms_codelen-1)-k-1]<<k);
+      }
+      int hd = comms_hammingdistance(encoded.codes[i], had); // then match to find closest
       //printf("\nhd = %d",hd);
       if (hd < min) {
         min = hd;
-        imin = k;
+        imin = j;
       }
     }
     unencoded[i] = 0;
@@ -155,13 +163,11 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
     //printf("hamdist: %d\n",min);
   }
 
-  struct {
-    char bit : 1;
-  } bits[sizeof(struct comms_Packet)*CHAR_BIT];
+  int bits[sizeof(struct comms_Packet)*CHAR_BIT];
 
   for (int i = 0; i < pckcodes; i++) {
       for (int j = comms_codelen-1; j >= 0 ; j--) {
-        bits[comms_codelen*i+(comms_codelen-(j+1))].bit = (unencoded[i]>>j)&1;
+        bits[comms_codelen*i+(comms_codelen-(j+1))] = (unencoded[i]>>j)&1;
       }
   }
 
@@ -170,10 +176,9 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
     char values[sizeof(struct comms_Packet)];
   } conv;
 
-  for (int i = 0; i < sizeof(conv.values); i++) {
-    for (int j = CHAR_BIT-1; j >= 0; j--) {
-      conv.values[i] <<= 1;
-      conv.values[i] += bits[i*CHAR_BIT+j].bit;
+  for (int i = 0; i < sizeof(struct comms_Packet); i++) {
+    for (int j = 0; j < CHAR_BIT; j++) {
+      conv.values[i] += bits[i*CHAR_BIT+j] << (CHAR_BIT-1-j);
     }
   }
 
@@ -193,7 +198,7 @@ int comms_hammingdistance(encoded_word a, encoded_word b) {
   return n;
 }
 
-encoded_word *comms_hadamard(int comms_codelen) {
+int **comms_hadamard(int comms_codelen) {
   gsl_matrix *initTop = gsl_matrix_alloc(2,2);
   initTop->tda = 2;
   gsl_matrix_set(initTop,0,0,1); //start of top half with matrix:
@@ -224,35 +229,34 @@ encoded_word *comms_hadamard(int comms_codelen) {
     matrixBottom = comms_KPro(matrixBottom,initBottom);
   }
 
-  encoded_word *comms_hadamard  = (encoded_word*) malloc(sizeof(encoded_word)*pow(2,comms_codelen));
+  int **hadamard = calloc(pow(2, comms_codelen), sizeof(int*));
+  for (int i = 0; i < pow(2, comms_codelen); i++) {
+    hadamard[i] = calloc(pow(2,comms_codelen-1), sizeof(int));
+  }
+
   double value;
 
-  for (int i = 0; i < pow(2,comms_codelen); i++) {
-    *(comms_hadamard+i) = 0;
-    for (int j = 0; j < pow(2,comms_codelen-1); j++) {
-      *(comms_hadamard+i) <<= 1;
+  for (int i = 0; i < pow(2, comms_codelen); i++) {
+    for (int j = 0; j < pow(2, comms_codelen-1); j++) {
       if (i < pow(2,comms_codelen-1)) {
-        value = gsl_matrix_get(matrixTop,i,j);
+        value = gsl_matrix_get(matrixTop,i,j); //take from the top half
       } else {
-        value = gsl_matrix_get(matrixBottom,i-pow(2,comms_codelen-1),j);
+        value = gsl_matrix_get(matrixBottom,i-pow(2,comms_codelen-1),j); //then the bottom half
       }
       if (value == 1) {
-        *(comms_hadamard+i) += 1;
-        //printf("1");
+        hadamard[i][j] = 1;
+       // printf("1");
       } else {
-        //printf("0");
+        hadamard[i][j] = 0;
+       // printf("0");
       }
     }
-    //printf(" %lu ",*(comms_hadamard+i));
     //printf("\n");
-  }
-  //printf("\n");
-  //printf("\n");
+  } 
+     // printf("\n");
+     // printf("\n");
 
-  encoded_word *p;
-  p = comms_hadamard;
-
-  return p;
+  return hadamard;
 }
 
 /*sourced from https://stackoverflow.com/questions/13722543/efficient-way-to-compute-kronecker-product-of-matrices-with-gsl*/

@@ -10,7 +10,7 @@ typedef uint8_t encoded_word;
 #pragma pack(1)
 struct comms_Packet {
 //  int8_t time;
-//  int8_t data[3];
+//  uint8_t data[3];
   float acc[3];
   int scale;
 
@@ -37,7 +37,7 @@ struct comms_Packet {
 };
 #pragma pack(pop)
 
-char comms_address[30];
+char comms_address[50];
 int comms_codelen; // 6 <= codelen <= 1 in bits
 
 int comms_sendMessage(char *buffer, int len);
@@ -50,6 +50,6 @@ char *comms_PackMessage(struct comms_Packet pck);
 struct comms_Packet comms_UnpackMessage(char *values);
 
 int comms_hammingdistance(encoded_word a, encoded_word b);
-encoded_word *comms_hadamard(int comms_codelen);
+int **comms_hadamard(int comms_codelen);
 gsl_matrix *comms_KPro(gsl_matrix *a, gsl_matrix *b);
 int comms_printbin (encoded_word dec);
