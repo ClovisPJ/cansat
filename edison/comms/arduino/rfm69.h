@@ -8,5 +8,5 @@ void rfm69_write_reg(uint8_t addr, uint8_t val);
 uint8_t *rfm69_read_fifo(uint8_t len);
 void rfm69_write_fifo(uint8_t *data, uint8_t len);
 void rfm69_settings();
-void rfm69_send();
-void rfm69_receive();
+void rfm69_send(char *data, int len);
+char *rfm69_receive(int len);

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <SPI.h>
 
-#include "arduino.h"
+#include "rfm69.h"
 
 void rfm69_spi_setup() {
   SPI.begin();
@@ -88,7 +88,7 @@ void rfm69_settings() {
   rfm69_write_reg(0x37, 0b00000000);
 }
 
-void rfm69_send() {
+void rfm69_send(char *data, int len) {
   rfm69_spi_setup();
   uint8_t buf;
 
@@ -102,11 +102,7 @@ void rfm69_send() {
   while ((rfm69_read_reg(0x27) & 0b10000000) == 0); // until crystal oscillator is running
 
   // Write data to FIFO register (transmission data)
-  uint8_t data[3];
-  data[0] = 15;
-  data[1] = 23;
-  data[2] = 47;
-  rfm69_write_fifo(data, 3);
+  rfm69_write_fifo(data, len);
 
   // TX mode - sends data
   buf = rfm69_read_reg(0x01); // Mode Register
@@ -126,7 +122,7 @@ void rfm69_send() {
 
 }
 
-void rfm69_receive() {
+char *rfm69_receive(int len) {
   rfm69_spi_setup();
   uint8_t buf;
 
@@ -154,10 +150,8 @@ void rfm69_receive() {
   while((rfm69_read_reg(0x27) & 0b10000000) == 0); // Data can be read
 
   // read data from FIFO register
-  uint8_t *data;
-  data = rfm69_read_fifo(3);
-  Serial.println(data[0]);
-  Serial.println(data[1]);
-  Serial.println(data[2]);
+  char *data;
+  data = rfm69_read_fifo(len);
 
+  return data;
 }

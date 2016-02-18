@@ -10,6 +10,7 @@
 #include "humid/htu21d.h"
 #include "gps/gps.h"
 #include "comms/comms.h"
+#include "comms/edison/rfm69.h"
 
 int main (int argc, char **argv) {
 
@@ -22,7 +23,6 @@ int main (int argc, char **argv) {
     gps_init();
 
     comms_codelen = 4;
-    strcpy(comms_address, "/dev/ttyACM0");
 
     while(1) {
 
@@ -84,12 +84,12 @@ int main (int argc, char **argv) {
       printf("altitude: %f\n", pck.altitude2);
       printf("ellipsoid seperation: %f\n", pck.ellipsoid_seperation);
 
-      comms_sendMessage(comms_PackMessage(pck), sizeof(struct comms_Packet));
+      rfm69_send(comms_PackMessage(pck), sizeof(struct comms_Packet));
 
 //      int comms_pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
 //      int encodedwordlen = pow(2, comms_codelen-1);
 
-//      comms_sendMessage(comms_EncodeMessage(conv.values), (encodedwordlen*comms_pckcodes)/CHAR_BIT);
+//      rfm69_send(comms_EncodeMessage(conv.values), (encodedwordlen*comms_pckcodes)/CHAR_BIT);
       usleep(1000000);
 
     }

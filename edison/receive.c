@@ -4,16 +4,16 @@
 #include <gsl/gsl_vector.h>
 
 #include "comms/comms.h"
+#include "comms/arduino/rfm69.h"
 
 int main() {
 
   comms_codelen = 4;
   // to change this, also change typedef for code
-  strcpy(comms_address, "/dev/ttyACM0");
   struct comms_Packet pck;
 
   while(1) {
-    pck = comms_UnpackMessage(comms_receiveMessage(sizeof(struct comms_Packet)));
+    pck = comms_UnpackMessage(rfm69_receive(sizeof(struct comms_Packet)));
     FILE *f;
     f = fopen("tmp/acc0", "w"); fprintf(f, "%f\n", pck.acc[0]); fclose(f);
     f = fopen("tmp/acc1", "w"); fprintf(f, "%f\n", pck.acc[1]); fclose(f);
