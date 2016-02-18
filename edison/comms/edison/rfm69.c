@@ -6,16 +6,16 @@
 #include "edison.h"
 
 void rfm69_spi_setup() {
-  spi = mraa_spi_init(0);
-  mraa_spi_frequency(spi, 100000);
-  mraa_spi_mode(spi, MRAA_SPI_MODE0);
+  rfm69_spi = mraa_spi_init(0);
+  mraa_spi_frequency(rfm69_spi, 100000);
+  mraa_spi_mode(rfm69_spi, MRAA_SPI_MODE0);
 }
 
 uint8_t rfm69_read_reg(uint8_t addr) {
   uint8_t *in = calloc(2, sizeof(uint8_t));
   *in = addr;
   uint8_t *out = calloc(2, sizeof(uint8_t));
-  mraa_spi_transfer_buf(spi, in, out, 2);
+  mraa_spi_transfer_buf(rfm69_spi, in, out, 2);
   return *(out+1);
 }
 
@@ -23,14 +23,14 @@ void rfm69_write_reg(uint8_t addr, uint8_t val) {
   uint8_t *in = calloc(2, sizeof(uint8_t));
   *in = 0b10000000 | addr; // begin 1 for write
   *(in+1) = val;
-  mraa_spi_write_buf(spi, in, 2);
+  mraa_spi_write_buf(rfm69_spi, in, 2);
 }
 
 uint8_t *rfm69_read_fifo(uint8_t len) {
   uint8_t *in = calloc(len+2, sizeof(uint8_t));
   in[0] = 0x00; // FIFO Register (though 0 already)
   uint8_t *out = calloc(len+2, sizeof(uint8_t));
-  mraa_spi_transfer_buf(spi, in, out, len+2);
+  mraa_spi_transfer_buf(rfm69_spi, in, out, len+2);
   return out+2;
 }
 
@@ -39,10 +39,10 @@ void rfm69_write_fifo(uint8_t *data, uint8_t len) {
   in[0] = 0x00 | 0b10000000; // FIFO Register, begin 1 for write
   in[1] = 0; // Address Byte
   memcpy(in+2, data, len);
-  mraa_spi_write_buf(spi, in, len+2);
+  mraa_spi_write_buf(rfm69_spi, in, len+2);
 }
 
-void settings() {
+void rfm69_settings() {
   rfm69_spi_setup();
 
   // set frequency
@@ -79,7 +79,7 @@ void settings() {
   rfm69_write_reg(0x37, 0b00000000);
 }
 
-void send() {
+void rfm69_send() {
   rfm69_spi_setup();
   uint8_t buf;
 
@@ -117,7 +117,7 @@ void send() {
 
 }
 
-void receive() {
+void rfm69_receive() {
   rfm69_spi_setup();
   uint8_t buf;
 

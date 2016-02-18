@@ -35,11 +35,7 @@ struct comms_Packet {
 };
 #pragma pack(pop)
 
-char comms_address[50];
 int comms_codelen; // 6 <= codelen <= 1 in bits
-
-int comms_sendMessage(char *buffer, int len);
-char *comms_receiveMessage(int len);
 
 char *comms_EncodeMessage(struct comms_Packet pck);
 struct comms_Packet comms_DecodeMessage(char *buffer);

@@ -9,7 +9,7 @@ void rfm69_spi_setup() {
   SPI.begin();
   SPI.beginTransaction(SPISettings(10000, MSBFIRST, SPI_MODE0)); //Settings
   SPI.endTransaction(); //this won't change settings
-  digitalWrite(CS, HIGH);
+  digitalWrite(rfm69_CS, HIGH);
 
   Serial.begin(9600);
 }
@@ -17,26 +17,26 @@ uint8_t rfm69_read_reg(uint8_t addr) {
   uint16_t in;
   in = (uint16_t)(addr << 8);
   uint16_t out;
-  digitalWrite(CS, LOW);
+  digitalWrite(rfm69_CS, LOW);
   out = SPI.transfer16(in);
-  digitalWrite(CS, HIGH);
+  digitalWrite(rfm69_CS, HIGH);
   return (uint8_t)out; //last 8 bits
 }
 
 void rfm69_write_reg(uint8_t addr, uint8_t val) {
   uint16_t in = (uint16_t)( (0b10000000 | addr) << 8); //begin 1 for write
   in += (uint16_t)val;
-  digitalWrite(CS, LOW);
+  digitalWrite(rfm69_CS, LOW);
   SPI.transfer16(in);
-  digitalWrite(CS, HIGH);
+  digitalWrite(rfm69_CS, HIGH);
 }
 
 uint8_t *rfm69_read_fifo(uint8_t len) {
   uint8_t *buf = (uint8_t*)calloc(len+2, sizeof(uint8_t));
   buf[0] = 0x00; // FIFO Register (though 0 already)
-  digitalWrite(CS, LOW);
+  digitalWrite(rfm69_CS, LOW);
   SPI.transfer(buf, len+2);
-  digitalWrite(CS, HIGH);
+  digitalWrite(rfm69_CS, HIGH);
   // buf[1] is address byte
   return buf+2;
 }
@@ -46,12 +46,12 @@ void rfm69_write_fifo(uint8_t *data, uint8_t len) {
   buf[0] = 0x00 | 0b10000000; // FIFO Register, begin 1 for write
   buf[1] = 0; // Address Byte
   memcpy(buf+2, data, len);
-  digitalWrite(CS, LOW);
+  digitalWrite(rfm69_CS, LOW);
   SPI.transfer(buf, len+2);
-  digitalWrite(CS, HIGH);
+  digitalWrite(rfm69_CS, HIGH);
 }
 
-void settings() {
+void rfm69_settings() {
   rfm69_spi_setup();
 
   // set frequency
@@ -88,7 +88,7 @@ void settings() {
   rfm69_write_reg(0x37, 0b00000000);
 }
 
-void send() {
+void rfm69_send() {
   rfm69_spi_setup();
   uint8_t buf;
 
@@ -126,7 +126,7 @@ void send() {
 
 }
 
-void receive() {
+void rfm69_receive() {
   rfm69_spi_setup();
   uint8_t buf;
 
