@@ -3,7 +3,6 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
-#include <gsl/gsl_vector.h>
 
 #include "accel/adxl345.h"
 #include "baro/bmpx8x.h"
@@ -23,14 +22,13 @@ int main (int argc, char **argv) {
     gps_init();
 
     comms_codelen = 4;
+    rfm69_settings();
 
     while(1) {
 
       adxl345_update();
       float *acc = adxl345_getacceleration(); // Read acceleration (g) (+-1%)
-      pck.acc[0] = *acc;
-      pck.acc[1] = *(acc+1);
-      pck.acc[2] = *(acc+2);
+      memcpy(pck.acc, acc, 3*sizeof(float));
       pck.scale = adxl345_getscale();
 
       pck.pressure = bmpx8x_getpressure (); //SD: 4 Pa
@@ -43,11 +41,12 @@ int main (int argc, char **argv) {
       pck.temperature2 = htu21d_gettemperature(0);
 
       if (gps_fix()) {
-        gps_get_nmea("$GPRMC");
+        int ret = gps_get_nmea("$GPRMC");
+        if (ret == 3) printf("No fix (wire says otherwise)\n");
+        if (ret == -1) printf("NMEA sentence not receieved (wire unplugged?)\n");
         gps_get_nmea("$GPGGA");
 
-        gsl_vector_memcpy(&pck.location, gps_location);
-
+        memcpy(pck.location, gps_location, 2*sizeof(float));
         pck.time = gps_time;
         //struct gps_exttm exttm = gps_time;
         //pck.time = (struct tm){exttm.tm_sec, exttm.tm_min, exttm.tm_hour, exttm.tm_mday, exttm.tm_mon, exttm.tm_year, exttm.tm_wday, exttm.tm_yday};
@@ -73,7 +72,8 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", pck.humidity); //+- 2%
       printf("temperature value = %f\n", pck.temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", pck.compRH);
-      gsl_vector_fprintf(stdout, &pck.location, "%f");
+      printf("latitude is: %f\n", pck.location[0]);
+      printf("longitude is: %f\n", pck.location[1]);
       struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
       printf("The time is: %s\n",asctime(&ascify));
       printf("ground speed: %f\n", pck.speed);
@@ -84,7 +84,11 @@ int main (int argc, char **argv) {
       printf("altitude: %f\n", pck.altitude2);
       printf("ellipsoid seperation: %f\n", pck.ellipsoid_seperation);
 
+      printf("\n\n");
+
       rfm69_send(comms_PackMessage(pck), sizeof(struct comms_Packet));
+      char *str = "Hello World!";
+      rfm69_send(str, 12);
 
 //      int comms_pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
 //      int encodedwordlen = pow(2, comms_codelen-1);

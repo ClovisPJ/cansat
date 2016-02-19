@@ -2,15 +2,13 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include <gsl/gsl_vector.h>
-
 #include <mraa.h>
 
+#include "../exttm.h"
 #include "gps.h"
 
 int gps_init() {
-  gps_uart = mraa_uart_init(0);
-  gps_location = gsl_vector_calloc(2); 
+  gps_uart = mraa_uart_init_raw("/dev/ttyMFD2");
   if (gps_uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
     return EXIT_FAILURE;
@@ -26,7 +24,7 @@ int gps_init() {
 int gps_get_nmea(char *code) {
   char buffer;
 
-  for (int i = 0; i < 100; i++) { //this is abs max, incase gps is unplugged or broken
+  for (int i = 0; i < 1000; i++) { //this is abs max, incase gps is unplugged or broken
     mraa_uart_read(gps_uart, &buffer, sizeof(buffer));
     if (buffer == 10) { //checks for linefeed
       char line[100] = "";
@@ -44,12 +42,12 @@ int gps_get_nmea(char *code) {
 
       if (strcmp(header,code) == 0) {
         strcpy(gps_line, line);
+        if (gps_parse() == 3) return 3; // 3: no fix
         return EXIT_SUCCESS;
-        gps_parse();
-        break;
       }
     }
   }
+  return EXIT_FAILURE;
 }
 
 int gps_parse() {
@@ -81,18 +79,18 @@ int gps_parse() {
       gps_speed = (gps_chrtoint(line[45])+gps_chrtoint(line[47])*0.1+gps_chrtoint(line[48])*0.01)*0.514444444; // original unit is knots
       gps_course = gps_chrtoint(line[50])*100+gps_chrtoint(line[51])*10+gps_chrtoint(line[52])+gps_chrtoint(line[54])*0.1+gps_chrtoint(line[55])*0.01;
 
-      gsl_vector *location = gsl_vector_calloc(2);
-      //get locationation data
-      gsl_vector_set(location, 0, gps_chrtoint(line[20])*1000+gps_chrtoint(line[21])*100+gps_chrtoint(line[22])*10+gps_chrtoint(line[23])+gps_chrtoint(line[25])*0.1+gps_chrtoint(line[26])*0.01+gps_chrtoint(line[27])*0.001+gps_chrtoint(line[28])*0.0001);
+      float location[2];
+      //get location data
+      location[0] = gps_chrtoint(line[20])*1000+gps_chrtoint(line[21])*100+gps_chrtoint(line[22])*10+gps_chrtoint(line[23])+gps_chrtoint(line[25])*0.1+gps_chrtoint(line[26])*0.01+gps_chrtoint(line[27])*0.001+gps_chrtoint(line[28])*0.0001;
       if ( line[30] == (int)'S') {
-        gsl_vector_set(location, 0, -1*gsl_vector_get(location, 0));
+        location[0] *= -1;
       }
-      gsl_vector_set(location, 1, gps_chrtoint(line[32])*10000+gps_chrtoint(line[33])*1000+gps_chrtoint(line[34])*100+gps_chrtoint(line[35])*10+gps_chrtoint(line[36])+gps_chrtoint(line[38])*0.1+gps_chrtoint(line[39])*0.01+gps_chrtoint(line[40])*0.001+gps_chrtoint(line[41])*0.0001);
+      location[1] = gps_chrtoint(line[32])*10000+gps_chrtoint(line[33])*1000+gps_chrtoint(line[34])*100+gps_chrtoint(line[35])*10+gps_chrtoint(line[36])+gps_chrtoint(line[38])*0.1+gps_chrtoint(line[39])*0.01+gps_chrtoint(line[40])*0.001+gps_chrtoint(line[41])*0.0001;
       if (line[43] == (int)'W') {
-        gsl_vector_set(location, 1, -1*gsl_vector_get(location, 1));
+        location[1] *= -1;
       }
 
-      gsl_vector_memcpy(gps_location, location);
+      memcpy(gps_location, location, 2*sizeof(float));
 
       return EXIT_SUCCESS;
 
@@ -132,13 +130,13 @@ int gps_chrtoint (char number) {
 
 int gps_fix() {
   int val;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 20000; i++) {
     val = mraa_gpio_read(gps_gpio);
     if (val == 1) {
       return 0; // false: no fix
       break;
     }
-    usleep(10000);
+    usleep(100);
   }
   return 1; //true: fix
 }

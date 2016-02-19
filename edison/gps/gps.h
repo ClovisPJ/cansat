@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <gsl/gsl_vector.h>
 #include <time.h>
-#include "exttm.h"
 
 #include <mraa.h>
 
@@ -11,7 +9,7 @@ mraa_gpio_context gps_gpio;
 
 char gps_line[100];
 struct gps_exttm gps_time;
-gsl_vector *gps_location;
+float gps_location[2];
 float gps_speed; // over ground, m/s
 float gps_course; // made good, true, degrees
 int gps_fix_quality; // 0 - no fix, 1 - GPS fix, 2 - DGPS fix
