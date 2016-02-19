@@ -2,7 +2,8 @@
 #include <gsl/gsl_matrix.h>
 #include <limits.h>
 #include <stdint.h>
-#include "exttm.h"
+
+#include "../exttm.h"
 
 typedef uint8_t encoded_word;
 
@@ -24,7 +25,7 @@ struct comms_Packet {
  // struct tm time;
   struct gps_exttm time;
 
-  gsl_vector location;
+  float location[2];
   float speed;
   float course;
   int fix_quality;

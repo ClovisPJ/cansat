@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include "comms.h"
-#include "uart.h"
 
 typedef uint8_t encoded_word;
 
@@ -258,4 +257,3 @@ int comms_printbin (encoded_word dec) {
   }
   return EXIT_SUCCESS;
 }
-

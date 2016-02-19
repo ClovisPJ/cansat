@@ -56,9 +56,6 @@ void rfm69_settings() {
   rfm69_write_reg(0x08, (freq>>8) & 0xFF);
   rfm69_write_reg(0x09, freq & 0xFF);
 
-  // Packet length -> 4
-  rfm69_write_reg(0x38, 4);
-
   // TxStartCondition -> FifoNotEmpty
   rfm69_write_reg(0x3C, 0b10001111);
 
@@ -82,6 +79,9 @@ void rfm69_settings() {
 void rfm69_send(char *data, int len) {
   rfm69_spi_setup();
   uint8_t buf;
+
+  // Packet length (inc. address byte)
+  rfm69_write_reg(0x38, len+1);
 
   // Standby mode
   buf = rfm69_read_reg(0x01); // Mode Register
@@ -116,6 +116,9 @@ void rfm69_send(char *data, int len) {
 char *rfm69_receive(int len) {
   rfm69_spi_setup();
   uint8_t buf;
+
+  // Packet length (inc. address byte)
+  rfm69_write_reg(0x38, len+1);
 
   // RX mode
   buf = rfm69_read_reg(0x01); // Mode Register

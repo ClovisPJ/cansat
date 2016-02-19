@@ -1,3 +1,4 @@
+#pragma once
 struct gps_exttm { //just like inbuilt struct tm, but has milliseconds
   int tm_msec;        /* milliseconds,  range 0 to 999    */
   int tm_sec;         /* seconds,  range 0 to 59          */

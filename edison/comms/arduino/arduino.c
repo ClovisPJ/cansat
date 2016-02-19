@@ -1,9 +1,31 @@
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <SPI.h>
 
-#include "rfm69.h"
+int rfm69_CS = 10;
+int rfm69_PS = 12;
+
+void rfm69_spi_setup();
+uint8_t rfm69_read_reg(uint8_t addr);
+void rfm69_write_reg(uint8_t addr, uint8_t val);
+uint8_t *rfm69_read_fifo(uint8_t len);
+void rfm69_write_fifo(uint8_t *data, uint8_t len);
+void rfm69_settings();
+void rfm69_send(char *data, int len);
+char *rfm69_receive(int len);
+
+void setup() {
+  Serial.begin(9600);
+  rfm69_settings();
+}
+
+void loop() {
+  char *data = rfm69_receive(rfm69_PS);
+  data[rfm69_PS] = '\0';
+  Serial.println(data);
+  delay(1000);
+}
 
 void rfm69_spi_setup() {
   SPI.begin();
@@ -65,9 +87,6 @@ void rfm69_settings() {
   rfm69_write_reg(0x08, (freq>>8) & 0xFF);
   rfm69_write_reg(0x09, freq & 0xFF);
 
-  // Packet length -> 4
-  rfm69_write_reg(0x38, 4);
-
   // TxStartCondition -> FifoNotEmpty
   rfm69_write_reg(0x3C, 0b10001111);
 
@@ -92,6 +111,9 @@ void rfm69_send(char *data, int len) {
   rfm69_spi_setup();
   uint8_t buf;
 
+  // Packet length (inc. address byte)
+  rfm69_write_reg(0x38, len+1);
+
   // Standby mode
   buf = rfm69_read_reg(0x01); // Mode Register
   buf &= 0b11100011; // keep other register variables
@@ -102,7 +124,8 @@ void rfm69_send(char *data, int len) {
   while ((rfm69_read_reg(0x27) & 0b10000000) == 0); // until crystal oscillator is running
 
   // Write data to FIFO register (transmission data)
-  rfm69_write_fifo(data, len);
+  uint8_t *intify = (uint8_t*)data;
+  rfm69_write_fifo(intify, len);
 
   // TX mode - sends data
   buf = rfm69_read_reg(0x01); // Mode Register
@@ -126,6 +149,9 @@ char *rfm69_receive(int len) {
   rfm69_spi_setup();
   uint8_t buf;
 
+  // Packet length (inc. address byte)
+  rfm69_write_reg(0x38, len+1);
+  
   // RX mode
   buf = rfm69_read_reg(0x01); // Mode Register
   buf &= 0b11100011; // keep other register variables
@@ -151,7 +177,7 @@ char *rfm69_receive(int len) {
 
   // read data from FIFO register
   char *data;
-  data = rfm69_read_fifo(len);
+  data = (char*)rfm69_read_fifo(len);
 
   return data;
 }
