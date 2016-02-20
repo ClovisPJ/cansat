@@ -62,7 +62,7 @@ int gps_parse() {
 
     if ( line[18] == (int)'A') { //checks for fix
 
-      struct gps_exttm timeinfo;
+      struct exttm timeinfo;
       //get UTC D&T
       timeinfo.tm_hour = gps_chrtoint(line[7])*10 + gps_chrtoint(line[8]);
       timeinfo.tm_min = gps_chrtoint(line[9])*10 + gps_chrtoint(line[10]);

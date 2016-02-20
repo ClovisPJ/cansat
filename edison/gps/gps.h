@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
 #include <mraa.h>
+
+#include "../exttm.h"
 
 mraa_uart_context gps_uart;
 mraa_gpio_context gps_gpio;
 
 char gps_line[100];
-struct gps_exttm gps_time;
+struct exttm gps_time;
 float gps_location[2];
 float gps_speed; // over ground, m/s
 float gps_course; // made good, true, degrees

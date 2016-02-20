@@ -7,7 +7,7 @@
 
 int main() {
   struct tm time;
-  struct gps_exttm exttm;
+  struct exttm exttm;
   float location[2];
   gps_init();
 

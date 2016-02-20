@@ -11,28 +11,28 @@ typedef uint8_t encoded_word;
 #pragma pack(1)
 struct comms_Packet {
   float acc[3];
-  int scale;
+  uint8_t scale;
 
   uint32_t pressure;
   float temperature1;
   float altitude1;
-  uint32_t sealevel;
+//  uint32_t sealevel;
 
   float humidity;
-  float temperature2;
+//  float temperature2;
   float compRH;
 
  // struct tm time;
-  struct gps_exttm time;
+  struct exttm time; // 12 bytes
 
   float location[2];
   float speed;
   float course;
-  int fix_quality;
-  int satelites;
-  float hdop;
+//  uint8_t fix_quality;
+//  uint8_t satelites;
+//  float hdop;
   float altitude2;
-  float ellipsoid_seperation;
+//  float ellipsoid_seperation;
 };
 #pragma pack(pop)
 
