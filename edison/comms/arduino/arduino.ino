@@ -4,7 +4,8 @@
 #include <SPI.h>
 
 const int rfm69_CS = 10;
-const int rfm69_PS = 100;
+const int rfm69_PS = 83; // unencoded
+//const int rfm69_PS = 166; // encoded at 4 CL
 
 void rfm69_spi_setup();
 uint8_t rfm69_read_reg(uint8_t addr);

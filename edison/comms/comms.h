@@ -16,10 +16,10 @@ struct comms_Packet {
   uint32_t pressure;
   float temperature1;
   float altitude1;
-//  uint32_t sealevel;
+  uint32_t sealevel;
 
   float humidity;
-//  float temperature2;
+  float temperature2;
   float compRH;
 
  // struct tm time;
@@ -28,15 +28,15 @@ struct comms_Packet {
   float location[2];
   float speed;
   float course;
-//  uint8_t fix_quality;
-//  uint8_t satelites;
-//  float hdop;
+  uint8_t fix_quality;
+  uint8_t satelites;
+  float hdop;
   float altitude2;
-//  float ellipsoid_seperation;
+  float ellipsoid_seperation;
 };
 #pragma pack(pop)
 
-int comms_codelen; // 6 <= codelen <= 1 in bits
+int comms_codelen;
 
 char *comms_EncodeMessage(struct comms_Packet pck);
 struct comms_Packet comms_DecodeMessage(char *buffer);
