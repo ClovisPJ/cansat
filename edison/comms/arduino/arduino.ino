@@ -4,7 +4,7 @@
 #include <SPI.h>
 
 int rfm69_CS = 10;
-int rfm69_PS = 12;
+int rfm69_PS = 65;
 
 void rfm69_spi_setup();
 uint8_t rfm69_read_reg(uint8_t addr);
