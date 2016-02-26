@@ -7,9 +7,17 @@ int main() {
   //for(int j = 0; j <= 100; j++) {
   while (1) {
     f = fopen("tmp", "w");
+
     fputc((rand()%10)+'0', f);
     fputc((rand()%10)+'0', f);
     fputc((rand()%10)+'0', f);
+
+    fputc('\n', f);
+
+    fputc((rand()%10)+'0', f);
+    fputc((rand()%10)+'0', f);
+    fputc((rand()%10)+'0', f);
+
     fclose(f);
     usleep(1000000);
   }

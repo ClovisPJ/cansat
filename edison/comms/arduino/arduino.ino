@@ -30,6 +30,12 @@ void loop() {
   char *data = rfm69_receive(rfm69_PS);
   data[rfm69_PS] = '\0';
   Serial.println(data);
+  char *header = "$ZYSK";
+  int header_len = 5;
+  char *uart = (char*)malloc(header_len+rfm69_PS*sizeof(char));
+  memcpy(uart, header, 5);
+  memcpy(uart, data, rfm69_PS);
+  Serial.println(uart);
   //rfm69_send(str, rfm69_PS);
   delay(1000);
 }
