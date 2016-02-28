@@ -61,10 +61,10 @@ int main (int argc, char **argv) {
 
       } else printf("No fix\n");
   
-      fprintf(stdout, "Current scale: 0x%2xg\n", pck.scale);
       fprintf(stdout, "AccX: %5.2f g\n", pck.acc[0]); 
       fprintf(stdout, "AccY: %5.2f g\n", pck.acc[1]);
       fprintf(stdout, "AccZ: %5.2f g\n", pck.acc[2]);
+      fprintf(stdout, "Current scale: 0x%2xg\n", pck.scale);
       printf("pressure value = %d", pck.pressure);
       printf("altitude value = %f", pck.altitude1);
       printf("sealevel value = %d", pck.sealevel);
