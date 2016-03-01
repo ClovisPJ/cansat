@@ -14,11 +14,13 @@
 int main (int argc, char **argv) {
 
     struct comms_Packet pck;
+    struct comms_Control ctrl;
 
     adxl345_init();
     bmpx8x_init(1, BMP085_ADDR, 3);
     htu21d_init(1, HTU21D_I2C_ADDRESS);
     htu21d_testsensor();
+    servo_init();
     gps_init();
 
     comms_codelen = 4;
@@ -39,6 +41,8 @@ int main (int argc, char **argv) {
       pck.compRH      = htu21d_getcompRH(1);
       pck.humidity    = htu21d_gethumidity(0);
       pck.temperature2 = htu21d_gettemperature(0);
+
+      pck.servo_ang = servo_ang;
 
       if (gps_fix()) {
         int ret = gps_get_nmea("$GPRMC");
@@ -72,6 +76,7 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", pck.humidity); //+- 2%
       printf("temperature value = %f\n", pck.temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", pck.compRH);
+      printf("servo angle: %d\n", pck.servo_ang);
       printf("latitude is: %f\n", pck.location[0]);
       printf("longitude is: %f\n", pck.location[1]);
       struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
@@ -86,12 +91,21 @@ int main (int argc, char **argv) {
 
       printf("\n\n");
 
-      rfm69_send(comms_PackMessage(pck), sizeof(struct comms_Packet));
+      char *p = comms_PackMessage(pck);
+      rfm69_send(p, sizeof(struct comms_Packet));
+      free(p);
 
 //      int comms_pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
 //      int encodedwordlen = pow(2, comms_codelen-1);
 
-//      rfm69_send(comms_EncodeMessage(conv.values), (encodedwordlen*comms_pckcodes)/CHAR_BIT);
+//      char *p = comms_EncodeMessage(conv.values);
+//      rfm69_send(p, (encodedwordlen*comms_pckcodes)/CHAR_BIT);
+//      free(p);
+
+      ctrl = comms_UnpackControl(rfm69_receive(sizeof(struct comms_Control)));
+      comms_codelen = ctrl.codelen;
+      servo_changeang(ctrl.servo_ang);
+
       usleep(1000000);
 
     }

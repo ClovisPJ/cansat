@@ -33,10 +33,18 @@ struct comms_Packet {
   float hdop;
   float altitude2;
   float ellipsoid_seperation;
+
+  int servo_ang;
 };
+
+struct comms_Control {
+  int servo_ang;
+  uint8_t codelen;
+}
 #pragma pack(pop)
 
 int comms_codelen;
+int comms_hamdist;
 
 char *comms_EncodeMessage(struct comms_Packet pck);
 struct comms_Packet comms_DecodeMessage(char *buffer);

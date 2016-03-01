@@ -28,6 +28,9 @@ int main (int argc, char **argv) {
     htu21d_init(1, HTU21D_I2C_ADDRESS);
     htu21d_testsensor();
 
+    int ang;
+    servo_init();
+
     struct tm time;
     struct exttm exttm;
     float location[2];
@@ -38,11 +41,11 @@ int main (int argc, char **argv) {
       adxl345_update(); // Update the data
       //raw = adxl345_getrawvalues(); // Read raw sensor data
       acc = adxl345_getacceleration(); // Read acceleration (g) (+-1%)
-      fprintf(stdout, "Current scale: 0x%2xg\n", adxl345_getscale());
       //fprintf(stdout, "Raw: %6d %6d %6d\n", raw[0], raw[1], raw[2]);
       fprintf(stdout, "AccX: %5.2f g\n", acc[0]); 
       fprintf(stdout, "AccY: %5.2f g\n", acc[1]);
       fprintf(stdout, "AccZ: %5.2f g\n", acc[2]);
+      fprintf(stdout, "Current scale: 0x%2xg\n", adxl345_getscale());
 
       pressure = bmpx8x_getpressure (); //SD: 4 Pa
       temperature1 = bmpx8x_gettemperature (); // SD: 5/30 degC
@@ -56,6 +59,9 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", humidity); //+- 2%
       printf("temperature value = %f\n", temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", compRH);
+
+      ang = servo_ang;      
+      printf("servo angle: %d\n", ang);
 
       if (gps_fix()) {
         int ret = gps_get_nmea("$GPRMC");

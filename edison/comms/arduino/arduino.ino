@@ -4,8 +4,9 @@
 #include <SPI.h>
 
 const int rfm69_CS = 10;
-const int rfm69_PS = 83; // unencoded
-//const int rfm69_PS = 166; // encoded at 4 CL
+const int rfm69_MPS = 83; // unencoded
+//const int rfm69_MPS = 166; // encoded at 4 CL
+const int rfm69_CPS = 47;
 
 void rfm69_spi_setup();
 uint8_t rfm69_read_reg(uint8_t addr);
@@ -16,7 +17,7 @@ void rfm69_settings();
 void rfm69_send(char *data, int len);
 char *rfm69_receive(int len);
   
-//char str[rfm69_PS];
+//char str[rfm69_MPS];
 
 void setup() {
   Serial.begin(9600);
@@ -27,16 +28,22 @@ void setup() {
 }
 
 void loop() {
-  char *data = rfm69_receive(rfm69_PS);
-  data[rfm69_PS] = '\0';
-  Serial.println(data);
+  char *data = rfm69_receive(rfm69_MPS);
+  //Serial.println(data);
   char *header = "$ZYSK";
   int header_len = 5;
-  char *uart = (char*)malloc(header_len+rfm69_PS*sizeof(char));
-  memcpy(uart, header, 5);
-  memcpy(uart, data, rfm69_PS);
+  char *uart = (char*)malloc(header_len+rfm69_MPS+1);
+  memcpy(uart, header, header_len);
+  memcpy(uart+header_len, data, rfm69_MPS);
+  uart[rfm69_MPS+header_len] = '\0';
   Serial.println(uart);
-  //rfm69_send(str, rfm69_PS);
+  free(uart);
+
+  if (Serial.readBytes(data, 5) != 0) && (strncmp(data, "$ZYSK", 5) == 0) {
+    readBytes(data, rfm69_CPS);
+    rfm69_send(data, rfm69_CPS);
+  }
+
   delay(1000);
 }
 

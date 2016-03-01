@@ -37,6 +37,31 @@ struct comms_Packet comms_UnpackMessage(char *values) {
 
 }
 
+char *comms_PackControl(struct comms_Control ctrl) {
+
+  union {
+    struct comms_Control control;
+    char values[sizeof(struct comms_Control)];
+  } conv;
+  conv.control = ctrl;
+
+  char *ret = malloc(sizeof(struct comms_Control));
+  memcpy(ret, conv.values, sizeof(struct comms_Control));
+  return ret;
+}
+
+struct comms_Control comms_UnpackControl(char *values) {
+
+  union {
+    struct comms_Control control;
+    char values[sizeof(struct comms_Control)];
+  } conv;
+  memcpy(conv.values, values, sizeof(struct comms_Control));
+
+  return conv.control;
+
+}
+
 char *comms_EncodeMessage(struct comms_Packet pck) {
 
   int pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
@@ -117,9 +142,9 @@ struct comms_Packet comms_DecodeMessage(char *buffer) {
         imin = j;
       }
     }
+    comms_hamdist = min;
     unencoded[i] = 0;
     unencoded[i] = imin;
-    //printf("hamdist: %d\n",min);
   }
 
   int bits[sizeof(struct comms_Packet)*CHAR_BIT];

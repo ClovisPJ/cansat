@@ -1,43 +1,67 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <time.h>
 #include <gsl/gsl_vector.h>
 
 #include "comms/comms.h"
-#include "comms/uart/uart.h"
 
 int main() {
 
-  struct comms_Packet pck;
+  comms_codelen = 4;
+  // to change this, also change typedef for code
 
-  strcpy(uart_address, "/dev/ttyACM0");;
+  strcpy(comms_address, "/dev/ttyACM0");
+  struct comms_Packet pck;
+  struct comms_Control ctrl;
+  int tries;
 
   while(1) {
-    pck = comms_UnpackMessage(uart_receiveMessage(sizeof(struct comms_Packet)));
+    pck = comms_UnpackMessage(comms_receiveMessage(sizeof(struct comms_Packet)));
     FILE *f;
-    f = fopen("tmp/acc0", "w"); fprintf(f, "%f\n", pck.acc[0]); fclose(f);
-    f = fopen("tmp/acc1", "w"); fprintf(f, "%f\n", pck.acc[1]); fclose(f);
-    f = fopen("tmp/acc2", "w"); fprintf(f, "%f\n", pck.acc[2]); fclose(f);
-    f = fopen("tmp/scale", "w"); fprintf(f, "%d\n", pck.scale); fclose(f);
-    f = fopen("tmp/pressure", "w"); fprintf(f, "%d\n", pck.pressure); fclose(f);
-    f = fopen("tmp/temperature1", "w"); fprintf(f, "%f\n", pck.temperature1); fclose(f);
-    f = fopen("tmp/altitude1", "w"); fprintf(f, "%f\n", pck.altitude1); fclose(f);
-    f = fopen("tmp/sealevel", "w"); fprintf(f, "%d\n", pck.sealevel); fclose(f);
-    f = fopen("tmp/humidity", "w"); fprintf(f, "%f\n", pck.humidity); fclose(f);
-    f = fopen("tmp/temperature2", "w"); fprintf(f, "%f\n", pck.temperature2); fclose(f);
-    f = fopen("tmp/compRH", "w"); fprintf(f, "%f\n", pck.compRH); fclose(f);
-    f = fopen("tmp/time", "w");
+    f = fopen("data.csv","w");
+    fprintf(f, "%f,", pck.acc[0]);
+    fprintf(f, "%f,", pck.acc[1]);
+    fprintf(f, "%f,", pck.acc[2]);
+    fprintf(f, "%d,", pck.scale);
+    fprintf(f, "%d,", pck.pressure);
+    fprintf(f, "%f,", pck.temperature1);
+    fprintf(f, "%f,", pck.altitude1);
+    fprintf(f, "%d,", pck.sealevel);
+    fprintf(f, "%f,", pck.humidity);
+    fprintf(f, "%f,", pck.temperature2);
+    fprintf(f, "%f,", pck.compRH);
+    fprintf(f, "%d,", pck.servo_ang);
     struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
-    fprintf(f, "%s\n", asctime(&ascify)); fclose(f);
-    f = fopen("tmp/location0", "w"); fprintf(f, "%f\n", pck.location[0]); fclose(f);
-    f = fopen("tmp/location1", "w"); fprintf(f, "%f\n", pck.location[1]); fclose(f);
-    f = fopen("tmp/speed", "w"); fprintf(f, "%f\n", pck.speed); fclose(f);
-    f = fopen("tmp/course", "w"); fprintf(f, "%f\n", pck.course); fclose(f);
-    f = fopen("tmp/fix_quality", "w"); fprintf(f, "%d\n", pck.fix_quality); fclose(f);
-    f = fopen("tmp/satelites", "w"); fprintf(f, "%d\n", pck.satelites); fclose(f);
-    f = fopen("tmp/hdop", "w"); fprintf(f, "%f\n", pck.hdop); fclose(f);
-    f = fopen("tmp/altitude2", "w"); fprintf(f, "%f\n", pck.altitude2); fclose(f);
-    f = fopen("tmp/ellipsoid_seperation", "w"); fprintf(f, "%f\n", pck.ellipsoid_seperation); fclose(f);
+    fprintf(f, "%s,", asctime(&ascify));
+    fprintf(f, "%f,", gsl_vector_get(&pck.location,0));
+    fprintf(f, "%f,", gsl_vector_get(&pck.location,1));
+    fprintf(f, "%f,", pck.speed);
+    fprintf(f, "%f,", pck.course);
+    fprintf(f, "%d,", pck.fix_quality);
+    fprintf(f, "%d,", pck.satelites);
+    fprintf(f, "%f,", pck.hdop);
+    fprintf(f, "%f,", pck.altitude2);
+    fprintf(f, "%f\n", pck.ellipsoid_seperation);
+    fclose(f);
+
+    char *buf;
+    f = fopen("servo.csv","w");
+    fgets(buf, 4, f);
+    fclose(f);
+
+    ctrl.servo_ang = atoi(buf);
+    if (comms_hamdist >= 4) {
+      comms_codelen++;
+      ctrl.codelen = comms_codelen;
+      tries = 0;
+    } else if (comms_hamdist == 0) {
+      if (tries >= 3) { 
+        comms_codelen--;
+        ctrl.codelen = comms_codelen;
+      }
+      tries++;
+    }
 
     usleep(1000000);
   }
