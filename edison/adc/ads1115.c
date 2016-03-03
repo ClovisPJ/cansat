@@ -3,13 +3,16 @@
 
 #include "ads1115.h"
 
-int ads1115_init() {
+int ads1115_init(int pin) {
   ads1115_i2c = mraa_i2c_init(1);
   mraa_i2c_address(ads1115_i2c, ADS1115_ADDRESS);
 
   uint8_t write[3];
   write[0] = 1;
-  write[1] = 0b11000010;
+  write[1] = 0b10000010;
+  if (pin == 0) write[1] += 0b01000000;
+  else if (pin == 1) write[1] += 0b01010000;
+  else return -1;
   write[2] = 0b00000011;
 
   uint8_t read[2];
@@ -27,8 +30,8 @@ int ads1115_init() {
 
 }
 
-double ads1115_read() {
-  double val;
+float ads1115_read() {
+  float val;
   uint8_t read[2];
   mraa_i2c_read(ads1115_i2c, read, 2);
   val = read[0] << 8 | read[1];

@@ -4,9 +4,8 @@
 #include <SPI.h>
 
 const int rfm69_CS = 10;
-const int rfm69_MPS = 83; // unencoded
-//const int rfm69_MPS = 166; // encoded at 4 CL
-const int rfm69_CPS = 47;
+const int rfm69_MPS = 95; // unencoded
+const int rfm69_CPS = 5;
 
 void rfm69_spi_setup();
 uint8_t rfm69_read_reg(uint8_t addr);
@@ -17,14 +16,11 @@ void rfm69_settings();
 void rfm69_send(char *data, int len);
 char *rfm69_receive(int len);
   
-//char str[rfm69_MPS];
 
 void setup() {
   Serial.begin(9600);
   rfm69_settings();
-  //for (int i = 0; i < 100; i++) {
-  //  str[i] = i+30;
-  //}
+  Serial.setTimeout(1000);
 }
 
 void loop() {

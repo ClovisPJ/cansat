@@ -2,8 +2,8 @@
 #include "ads1115.h"
 
 int main() {
-  ads1115_init();
-  double val;
+  ads1115_init(0);
+  float val;
   while (1) {
     val = ads1115_read();
     printf("value is: %fV\n", val);

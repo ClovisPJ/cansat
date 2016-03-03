@@ -5,6 +5,8 @@
 #include "accel/adxl345.h"
 #include "baro/bmpx8x.h"
 #include "humid/htu21d.h"
+#include "adc/ads1115.h"
+#include "servo/servo.h"
 #include "gps/gps.h"
 #include "exttm.h"
 
@@ -27,6 +29,10 @@ int main (int argc, char **argv) {
     float compRH      = 0.0;
     htu21d_init(1, HTU21D_I2C_ADDRESS);
     htu21d_testsensor();
+
+    double gas1;
+    double gas2;
+    //ads1115_init(0);
 
     int ang;
     servo_init();
@@ -59,6 +65,14 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", humidity); //+- 2%
       printf("temperature value = %f\n", temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", compRH);
+
+      ads1115_init(0);
+      gas1 = ads1115_read();
+      ads1115_init(1);
+      gas2 = ads1115_read();
+
+      printf("AIN0 is: %fV\n", gas1);
+      printf("AIN1 is: %fV\n", gas2);
 
       ang = servo_ang;      
       printf("servo angle: %d\n", ang);

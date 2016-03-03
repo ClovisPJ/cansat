@@ -26,6 +26,10 @@ int main (int argc, char **argv) {
     comms_codelen = 4;
     rfm69_settings();
 
+    mraa_gpio_context irq_gpio;
+    irq_gpio = mraa_gpio_init(); //pin?
+    mraa_gpio_dir(irq_gpio, MRAA_GPIO_IN);
+
     while(1) {
 
       adxl345_update();
@@ -41,6 +45,11 @@ int main (int argc, char **argv) {
       pck.compRH      = htu21d_getcompRH(1);
       pck.humidity    = htu21d_gethumidity(0);
       pck.temperature2 = htu21d_gettemperature(0);
+
+      ads1115_init(0);
+      pck.gas1 = ads1115_read();
+      ads1115_init(1);
+      pck.gas2 = ads1115_read();
 
       pck.servo_ang = servo_ang;
 
@@ -76,6 +85,8 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", pck.humidity); //+- 2%
       printf("temperature value = %f\n", pck.temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", pck.compRH);
+      printf("AIN0 is: %fV\n", gas1);
+      printf("AIN1 is: %fV\n", gas2);
       printf("servo angle: %d\n", pck.servo_ang);
       printf("latitude is: %f\n", pck.location[0]);
       printf("longitude is: %f\n", pck.location[1]);
@@ -92,6 +103,7 @@ int main (int argc, char **argv) {
       printf("\n\n");
 
       char *p = comms_PackMessage(pck);
+      mraa_gpio_isr_exit(irq_gpio);
       rfm69_send(p, sizeof(struct comms_Packet));
       free(p);
 
@@ -102,12 +114,17 @@ int main (int argc, char **argv) {
 //      rfm69_send(p, (encodedwordlen*comms_pckcodes)/CHAR_BIT);
 //      free(p);
 
-      ctrl = comms_UnpackControl(rfm69_receive(sizeof(struct comms_Control)));
-      comms_codelen = ctrl.codelen;
-      servo_changeang(ctrl.servo_ang);
-
+      rfm69_rxmode(sizeof(struct comms_Control));
+      mraa_gpio_isr(irq_gpio, MRAA_GPIO_EDGE_FALLING, control_received, NULL);
+      
       usleep(1000000);
 
     }
     return EXIT_SUCCESS;
+}
+
+void control_received() {
+  ctrl = comms_UnpackControl(rfm69_receive(sizeof(struct comms_Control)));
+  comms_codelen = ctrl.codelen;
+  servo_changeang(ctrl.servo_ang);
 }

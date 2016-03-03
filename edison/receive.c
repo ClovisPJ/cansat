@@ -63,6 +63,10 @@ int main() {
       tries++;
     }
 
+    char *p = comms_PackControl(ctrl);
+    uart_sendMessage(p, sizeof(struct comms_Control);
+    free(p);
+
     usleep(1000000);
   }
 

@@ -19,6 +19,11 @@ int gps_init() {
   }
   gps_gpio = mraa_gpio_init(48);
   mraa_gpio_dir(gps_gpio, MRAA_GPIO_IN);
+/*  char *cmd = "$PMTK220,100*2F";
+  cmd[15] = <CR>;
+  cmd[16] = <LF>;
+  mraa_uart_write(gps_uart, cmd, 17);
+*/
 }
 
 int gps_get_nmea(char *code) {

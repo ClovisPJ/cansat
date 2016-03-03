@@ -22,6 +22,11 @@ struct comms_Packet {
   float temperature2;
   float compRH;
 
+  float gas1;
+  float gas2;
+  
+  int servo_ang;
+
  // struct tm time;
   struct exttm time; // 12 bytes
 
@@ -34,23 +39,25 @@ struct comms_Packet {
   float altitude2;
   float ellipsoid_seperation;
 
-  int servo_ang;
 };
 
 struct comms_Control {
   int servo_ang;
   uint8_t codelen;
-}
+};
 #pragma pack(pop)
 
 int comms_codelen;
 int comms_hamdist;
 
-char *comms_EncodeMessage(struct comms_Packet pck);
-struct comms_Packet comms_DecodeMessage(char *buffer);
-
 char *comms_PackMessage(struct comms_Packet pck);
 struct comms_Packet comms_UnpackMessage(char *values);
+
+char *comms_PackControl(struct comms_Control ctrl);
+struct comms_Control comms_UnpackControl(char *values);
+
+char *comms_EncodeMessage(struct comms_Packet pck);
+struct comms_Packet comms_DecodeMessage(char *buffer);
 
 int comms_hammingdistance(encoded_word a, encoded_word b);
 int **comms_hadamard(int comms_codelen);
