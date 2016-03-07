@@ -1,14 +1,12 @@
-var data = [];
+var data = []; // string array
 
-function parsedata(max) {
+function parsedata() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState == 4 && xhttp.status == 200) {
         var raw = xhttp.responseText;
         raw = raw.split('\n');
-        for (i = 0; i < max; i++) {
-          data = +(raw[raw.length-1].split(','));
-        }
+        data = raw[raw.length-1].split(',');
       }
     }
     xhttp.open("GET", "tmp", true);
@@ -24,9 +22,9 @@ $(function () {
                     var series1 = this.series[0];
                     var series2 = this.series[1];
                     setInterval(function () {
-                      parsedata(2);
-                      series1.addPoint( data[0], false, true, true);
-                      series2.addPoint( data[1], true, true, true);
+                      parsedata();
+                      series1.addPoint( Number(data[0]), false, true, true);
+                      series2.addPoint( Number(data[1]), true, true, true);
                     }, 1000);
                 }
               }
