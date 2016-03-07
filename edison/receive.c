@@ -13,8 +13,8 @@ int main() {
 
   strcpy(comms_address, "/dev/ttyACM0");
   struct comms_Packet pck;
-  struct comms_Control ctrl;
-  int tries;
+//  struct comms_Control ctrl;
+//  int tries;
 
   while(1) {
     pck = comms_UnpackMessage(comms_receiveMessage(sizeof(struct comms_Packet)));
@@ -31,11 +31,13 @@ int main() {
     fprintf(f, "%f,", pck.humidity);
     fprintf(f, "%f,", pck.temperature2);
     fprintf(f, "%f,", pck.compRH);
+    fprintf(f, "%f,", pck.gas1);
+    fprintf(f, "%f,", pck.gas2);
     fprintf(f, "%d,", pck.servo_ang);
     struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
     fprintf(f, "%s,", asctime(&ascify));
-    fprintf(f, "%f,", gsl_vector_get(&pck.location,0));
-    fprintf(f, "%f,", gsl_vector_get(&pck.location,1));
+    fprintf(f, "%f,", pck.location[0]);
+    fprintf(f, "%f,", pck.location[1]);
     fprintf(f, "%f,", pck.speed);
     fprintf(f, "%f,", pck.course);
     fprintf(f, "%d,", pck.fix_quality);
@@ -44,7 +46,7 @@ int main() {
     fprintf(f, "%f,", pck.altitude2);
     fprintf(f, "%f\n", pck.ellipsoid_seperation);
     fclose(f);
-
+/*
     char *buf;
     f = fopen("servo.csv","w");
     fgets(buf, 4, f);
@@ -66,6 +68,7 @@ int main() {
     char *p = comms_PackControl(ctrl);
     uart_sendMessage(p, sizeof(struct comms_Control);
     free(p);
+*/
 
     usleep(1000000);
   }

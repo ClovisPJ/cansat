@@ -69,17 +69,25 @@ int kalmanfilter_setup() {
   gsl_matrix *temp_location = gsl_matrix_calloc(unfiltered_states, 1);
 
   double timestep;
-  int hdop;
-  int vert_err;
+  float hdop;
+  float vert_err;
 
   int s;
 }
 
-int kalmanfilter_step(gsl_matrix* location, gsl_matrix* velocity, gsl_matrix* acceleration, float timestep) {
+int kalmanfilter_step(gsl_matrix* loc, gsl_matrix* velo, gsl_matrix* accel, float tstep, float hdp, float v_err) {
+
+  gsl_matrix_memcpy(location, loc);
+  gsl_matrix_memcpy(velocity, velo);
+  gsl_matrix_memcpy(acceleration, accel);
 
   gsl_matrix_memcpy(delta_location, location);
   gsl_matrix_sub(delta_location, temp_location);
   gsl_matrix_memcpy(temp_location, location);
+
+  timestep = tstep;
+  hdop = hdp;
+  vert_err = v_err;
 
   gsl_matrix_set(predict, 0, 3, timestep);
   gsl_matrix_set(predict, 1, 4, timestep);
@@ -90,8 +98,7 @@ int kalmanfilter_step(gsl_matrix* location, gsl_matrix* velocity, gsl_matrix* ac
   gsl_matrix_set(control, 3, 0, timestep);
   gsl_matrix_set(control, 4, 1, timestep);
   gsl_matrix_set(control, 5, 2, timestep);
-  hdop = 5;
-  vert_err = 5;
+
   gsl_matrix_set(observation_covariance, 0, 0, hdop);
   gsl_matrix_set(observation_covariance, 1, 1, hdop);
   gsl_matrix_set(observation_covariance, 2, 2, vert_err);
@@ -145,7 +152,7 @@ int kalmanfilter_step(gsl_matrix* location, gsl_matrix* velocity, gsl_matrix* ac
   gsl_matrix_set_zero(temp22a);
   gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1, state_covariance, predict, 0, temp22a); //notice predict is transposed
   gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1, predict, temp22a, 0, estimate_covariance);
-  gsl_matrix_add_constant(estimate_covariance, 0.1); //adxl345 noise, this is completely wrong
+  gsl_matrix_add_constant(estimate_covariance, 9.8); // approx, as error is 1% of acceleration - normally 1g
   
   //kalman_gain = estimate_covariance * pseudoinverse(estimate_covariance + observation_covariance);
   gsl_matrix_set_zero(kalman_gain);

@@ -40,12 +40,13 @@ struct comms_Packet {
   float ellipsoid_seperation;
 
 };
-
+#pragma pack(pop)
+/*
 struct comms_Control {
   int servo_ang;
   uint8_t codelen;
 };
-#pragma pack(pop)
+#pragma pack(pop)*/
 
 int comms_codelen;
 int comms_hamdist;
@@ -53,8 +54,8 @@ int comms_hamdist;
 char *comms_PackMessage(struct comms_Packet pck);
 struct comms_Packet comms_UnpackMessage(char *values);
 
-char *comms_PackControl(struct comms_Control ctrl);
-struct comms_Control comms_UnpackControl(char *values);
+//char *comms_PackControl(struct comms_Control ctrl);
+//struct comms_Control comms_UnpackControl(char *values);
 
 char *comms_EncodeMessage(struct comms_Packet pck);
 struct comms_Packet comms_DecodeMessage(char *buffer);

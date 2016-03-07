@@ -120,7 +120,8 @@ void rfm69_send(char *data, int len) {
 
 }
 
-void rfm69_rxmode(int len) {
+//void rfm69_rxmode(int len) {
+char *rfm69_receive(int len) {
   rfm69_spi_setup();
   uint8_t buf;
 
@@ -135,6 +136,7 @@ void rfm69_rxmode(int len) {
 
   while((rfm69_read_reg(0x27) & 0b10000000) == 0); // RSSI sampling starts (RX mode ready)
 
+/*
   // IRQ Pin mapping
   buf = rfm69_read_reg(0x25);
   buf &= 0b00111111; // keep other register variables
@@ -146,7 +148,7 @@ void rfm69_rxmode(int len) {
 char *rfm69_receive(int len) {
   rfm69_spi_setup();
   uint8_t buf;
-
+*/
   // read data on "on-the-fly"
   int i = 0;
   uint8_t *payload = calloc(len, sizeof(uint8_t));

@@ -3,6 +3,7 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include <gsl/gsl_matrix.h>
 
 #include "accel/adxl345.h"
 #include "baro/bmpx8x.h"
@@ -28,6 +29,18 @@ int main (int argc, char **argv) {
 
     comms_codelen = 4;
     rfm69_settings();
+
+    kalmanfilter_setup();
+    float *matricise = calloc(3, sizeof(float));
+    gsl_matrix *location;
+    gsl_matrix *temp_location;
+    gsl_matrix *velocity;
+    gsl_matrix *acceleration;
+    int first = 1;
+    float timestep;
+    struct exttm temp_t;
+
+    float destination[2];
 
 /*    mraa_gpio_context irq_gpio;
     irq_gpio = mraa_gpio_init(); //pin?
@@ -59,23 +72,87 @@ int main (int argc, char **argv) {
       if (gps_fix()) {
         int ret = gps_get_nmea("$GPRMC");
         if (ret == 3) printf("No fix (wire says otherwise)\n");
-        if (ret == -1) printf("NMEA sentence not receieved (wire unplugged?)\n");
-        gps_get_nmea("$GPGGA");
+        else if (ret == -1) printf("NMEA sentence not receieved (wire unplugged?)\n");
+        else {
+          gps_get_nmea("$GPGGA");
 
-        memcpy(pck.location, gps_location, 2*sizeof(float));
-        pck.time = gps_time;
-        //struct exttm exttm = gps_time;
-        //pck.time = (struct tm){exttm.tm_sec, exttm.tm_min, exttm.tm_hour, exttm.tm_mday, exttm.tm_mon, exttm.tm_year, exttm.tm_wday, exttm.tm_yday};
+          memcpy(matricise, gps_location, 2*sizeof(float));
+          matricise[2] = altitude2; // also altitude1 avaliable (from barometer)
+          location = kalmanfilter_matrix(matricise);
 
-        pck.speed = gps_speed;
-        pck.course = gps_course;
-        pck.fix_quality = gps_fix_quality;
-        pck.satelites = gps_satelites;
-        pck.hdop = gps_hdop;
-        pck.altitude2 = gps_altitude;
-        pck.ellipsoid_seperation = gps_ellipsoid_seperation;
+          if (first == 0) { // this is so we have a difference for velocity
+            memcpy(matricise, acc, 3*sizeof(float));
+            acc[0] *= pck.scale*9.8;
+            acc[1] *= pck.scale*9.8;
+            acc[2] *= pck.scale*9.8;
+            acceleration = kalmanfilter_matrix(matricise);
+
+            gsl_matrix_memcpy(velocity, location);
+            gsl_matrix_sub(velocity, temp_location);
+
+            timestep = (gps_time.tm_msec*0.001+gps_time.tm_sec+gps_time.tm_min*60) - (temp_t.tm_msec*0.001+temp_t.tm_sec+temp_t.tm_min*60) // only goes into minutes
+            if (timestep <= 0) timestep = 0.001; // just in case sampling is too fast
+
+            kalmanfilter_step(location, velocity, acceleration, timestep, gps_hdop, 1); // error values are incorrect
+          } else {
+            first = 0;
+          }
+          temp_t = gps_time;
+          gsl_matrix_memcpy(temp_location, location);
+
+          memcpy(pck.location, gps_location, 2*sizeof(float));
+          pck.time = gps_time;
+
+          pck.speed = gps_speed;
+          pck.course = gps_course;
+          pck.fix_quality = gps_fix_quality;
+          pck.satelites = gps_satelites;
+          pck.hdop = gps_hdop;
+          pck.altitude2 = gps_altitude;
+          pck.ellipsoid_seperation = gps_ellipsoid_seperation;
+
+          float[2] intended;
+          intended[0] = destination[0] - gps_location[0];
+          intended[1] = destination[1] - gps_location[1];
+          
+          float ang;
+          ang = atan2(intended[0], intended[1]); // using x/y as this gives ang from N instead of x-axis
+          if (ang < 0) ang += 360;
+          ang -= gps_course;
+
+          servo_changeang(0); // need to be done experimentally
+
+        }
 
       } else printf("No fix\n");
+      FILE *f;
+      f = fopen("data.csv","w");
+      fprintf(f, "%f,", pck.acc[0]);
+      fprintf(f, "%f,", pck.acc[1]);
+      fprintf(f, "%f,", pck.acc[2]);
+      fprintf(f, "%d,", pck.scale);
+      fprintf(f, "%d,", pck.pressure);
+      fprintf(f, "%f,", pck.temperature1);
+      fprintf(f, "%f,", pck.altitude1);
+      fprintf(f, "%d,", pck.sealevel);
+      fprintf(f, "%f,", pck.humidity);
+      fprintf(f, "%f,", pck.temperature2);
+      fprintf(f, "%f,", pck.compRH);
+      fprintf(f, "%f,", pck.gas1);
+      fprintf(f, "%f,", pck.gas2);
+      fprintf(f, "%d,", pck.servo_ang);
+      struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
+      fprintf(f, "%s,", asctime(&ascify));
+      fprintf(f, "%f,", pck.location[0]);
+      fprintf(f, "%f,", pck.location[1]);
+      fprintf(f, "%f,", pck.speed);
+      fprintf(f, "%f,", pck.course);
+      fprintf(f, "%d,", pck.fix_quality);
+      fprintf(f, "%d,", pck.satelites);
+      fprintf(f, "%f,", pck.hdop);
+      fprintf(f, "%f,", pck.altitude2);
+      fprintf(f, "%f\n", pck.ellipsoid_seperation);
+      fclose(f);
   
       printf("AccX: %5.2f g\n", pck.acc[0]); 
       printf("AccY: %5.2f g\n", pck.acc[1]);

@@ -37,7 +37,7 @@ struct comms_Packet comms_UnpackMessage(char *values) {
 
 }
 
-char *comms_PackControl(struct comms_Control ctrl) {
+/*char *comms_PackControl(struct comms_Control ctrl) {
 
   union {
     struct comms_Control control;
@@ -60,7 +60,7 @@ struct comms_Control comms_UnpackControl(char *values) {
 
   return conv.control;
 
-}
+}*/
 
 char *comms_EncodeMessage(struct comms_Packet pck) {
 

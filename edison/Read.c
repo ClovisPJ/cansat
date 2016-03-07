@@ -32,7 +32,6 @@ int main (int argc, char **argv) {
 
     double gas1;
     double gas2;
-    //ads1115_init(0);
 
     int ang;
     servo_init();
@@ -48,10 +47,10 @@ int main (int argc, char **argv) {
       //raw = adxl345_getrawvalues(); // Read raw sensor data
       acc = adxl345_getacceleration(); // Read acceleration (g) (+-1%)
       //fprintf(stdout, "Raw: %6d %6d %6d\n", raw[0], raw[1], raw[2]);
-      fprintf(stdout, "AccX: %5.2f g\n", acc[0]); 
-      fprintf(stdout, "AccY: %5.2f g\n", acc[1]);
-      fprintf(stdout, "AccZ: %5.2f g\n", acc[2]);
-      fprintf(stdout, "Current scale: 0x%2xg\n", adxl345_getscale());
+      printf("AccX: %5.2f g\n", acc[0]); 
+      printf("AccY: %5.2f g\n", acc[1]);
+      printf("AccZ: %5.2f g\n", acc[2]);
+      printf("Current scale: 0x%2xg\n", adxl345_getscale());
 
       pressure = bmpx8x_getpressure (); //SD: 4 Pa
       temperature1 = bmpx8x_gettemperature (); // SD: 5/30 degC
