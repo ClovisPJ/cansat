@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <time.h>
+#include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "accel/adxl345.h"
 #include "baro/bmpx8x.h"
@@ -76,6 +77,34 @@ int main (int argc, char **argv) {
         pck.ellipsoid_seperation = gps_ellipsoid_seperation;
 
       } else printf("No fix\n");
+      FILE *f;
+      f = fopen("data.csv","w");
+      fprintf(f, "%f,", pck.acc[0]);
+      fprintf(f, "%f,", pck.acc[1]);
+      fprintf(f, "%f,", pck.acc[2]);
+      fprintf(f, "%d,", pck.scale);
+      fprintf(f, "%d,", pck.pressure);
+      fprintf(f, "%f,", pck.temperature1);
+      fprintf(f, "%f,", pck.altitude1);
+      fprintf(f, "%d,", pck.sealevel);
+      fprintf(f, "%f,", pck.humidity);
+      fprintf(f, "%f,", pck.temperature2);
+      fprintf(f, "%f,", pck.compRH);
+      fprintf(f, "%f,", pck.gas1);
+      fprintf(f, "%f,", pck.gas2);
+      fprintf(f, "%d,", pck.servo_ang);
+      struct tm mkify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
+      fprintf(f, "%s,", mktime(&ascify));
+      fprintf(f, "%f,", pck.location[0]);
+      fprintf(f, "%f,", pck.location[1]);
+      fprintf(f, "%f,", pck.speed);
+      fprintf(f, "%f,", pck.course);
+      fprintf(f, "%d,", pck.fix_quality);
+      fprintf(f, "%d,", pck.satelites);
+      fprintf(f, "%f,", pck.hdop);
+      fprintf(f, "%f,", pck.altitude2);
+      fprintf(f, "%f\n", pck.ellipsoid_seperation);
+      fclose(f);
   
       printf("AccX: %5.2f g\n", pck.acc[0]); 
       printf("AccY: %5.2f g\n", pck.acc[1]);
@@ -106,7 +135,7 @@ int main (int argc, char **argv) {
       printf("\n\n");
 
       char *p = comms_PackMessage(pck);
-      mraa_gpio_isr_exit(irq_gpio);
+//      mraa_gpio_isr_exit(irq_gpio);
       rfm69_send(p, sizeof(struct comms_Packet));
       free(p);
 

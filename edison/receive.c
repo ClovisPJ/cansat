@@ -34,8 +34,8 @@ int main() {
     fprintf(f, "%f,", pck.gas1);
     fprintf(f, "%f,", pck.gas2);
     fprintf(f, "%d,", pck.servo_ang);
-    struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
-    fprintf(f, "%s,", asctime(&ascify));
+    struct tm mkify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
+    fprintf(f, "%s,", mktime(&ascify));
     fprintf(f, "%f,", pck.location[0]);
     fprintf(f, "%f,", pck.location[1]);
     fprintf(f, "%f,", pck.speed);

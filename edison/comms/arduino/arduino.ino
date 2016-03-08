@@ -5,7 +5,7 @@
 
 const int rfm69_CS = 10;
 const int rfm69_MPS = 95; // unencoded
-const int rfm69_CPS = 5;
+//const int rfm69_CPS = 5;
 
 void rfm69_spi_setup();
 uint8_t rfm69_read_reg(uint8_t addr);
@@ -35,10 +35,10 @@ void loop() {
   Serial.println(uart);
   free(uart);
 
-  if (Serial.readBytes(data, 5) != 0) && (strncmp(data, "$ZYSK", 5) == 0) {
+/*  if (Serial.readBytes(data, 5) != 0) && (strncmp(data, "$ZYSK", 5) == 0) {
     readBytes(data, rfm69_CPS);
     rfm69_send(data, rfm69_CPS);
-  }
+  }*/
 
   delay(1000);
 }
@@ -48,9 +48,9 @@ void rfm69_spi_setup() {
   SPI.beginTransaction(SPISettings(10000, MSBFIRST, SPI_MODE0)); //Settings
   SPI.endTransaction(); //this won't change settings
   digitalWrite(rfm69_CS, HIGH);
-
   Serial.begin(9600);
 }
+
 uint8_t rfm69_read_reg(uint8_t addr) {
   uint16_t in;
   in = (uint16_t)(addr << 8);

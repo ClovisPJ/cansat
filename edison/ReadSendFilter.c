@@ -77,11 +77,15 @@ int main (int argc, char **argv) {
           gps_get_nmea("$GPGGA");
 
           memcpy(matricise, gps_location, 2*sizeof(float));
-          matricise[2] = altitude2; // also altitude1 avaliable (from barometer)
+          if (gps_satelites >= 4) {
+            matricise[2] = pck.altitude2; // GPS altitude
+          } else {
+            matricise[2] = pck.altitude1; // barometer altitude
+          }
           location = kalmanfilter_matrix(matricise);
 
           if (first == 0) { // this is so we have a difference for velocity
-            memcpy(matricise, acc, 3*sizeof(float));
+            memcpy(matricise, pck.acc, 3*sizeof(float));
             acc[0] *= pck.scale*9.8;
             acc[1] *= pck.scale*9.8;
             acc[2] *= pck.scale*9.8;
@@ -141,8 +145,8 @@ int main (int argc, char **argv) {
       fprintf(f, "%f,", pck.gas1);
       fprintf(f, "%f,", pck.gas2);
       fprintf(f, "%d,", pck.servo_ang);
-      struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
-      fprintf(f, "%s,", asctime(&ascify));
+      struct tm mkify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
+      fprintf(f, "%s,", mktime(&ascify));
       fprintf(f, "%f,", pck.location[0]);
       fprintf(f, "%f,", pck.location[1]);
       fprintf(f, "%f,", pck.speed);
@@ -183,7 +187,7 @@ int main (int argc, char **argv) {
       printf("\n\n");
 
       char *p = comms_PackMessage(pck);
-      mraa_gpio_isr_exit(irq_gpio);
+//      mraa_gpio_isr_exit(irq_gpio);
       rfm69_send(p, sizeof(struct comms_Packet));
       free(p);
 
