@@ -10,27 +10,29 @@ typedef uint8_t encoded_word;
 #pragma pack(push) //pragma is needed to remove padding (extra spacing)
 #pragma pack(1)
 struct comms_Packet {
-  float acc[3];
+  float acc[3]; // 0, 1, 2
   uint8_t scale;
 
-  uint32_t pressure;
+  uint8_t temperature3; // 22
+
+  uint32_t pressure; // 4
   float temperature1;
   float altitude1;
   uint32_t sealevel;
 
-  float humidity;
+  float humidity; // 8
   float temperature2;
   float compRH;
 
-  float gas1;
+  float gas1; // 11
   float gas2;
   
-  int servo_ang;
+  int servo_ang; // 13
 
  // struct tm time;
-  struct exttm time; // 12 bytes
+  struct exttm time; // 12 bytes long
 
-  float location[2];
+  float location[2]; // 15, 16
   float speed;
   float course;
   uint8_t fix_quality;
@@ -38,6 +40,7 @@ struct comms_Packet {
   float hdop;
   float altitude2;
   float ellipsoid_seperation;
+
 
 };
 #pragma pack(pop)

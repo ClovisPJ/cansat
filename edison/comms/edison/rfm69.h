@@ -9,3 +9,4 @@ void rfm69_write_reg(uint8_t addr, uint8_t val);
 void rfm69_settings();
 void rfm69_send(char* data, int len);
 char *rfm69_receive(int len);
+uint8_t rfm69_temperature();

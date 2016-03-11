@@ -8,7 +8,7 @@
 #include "gps.h"
 
 int gps_init() {
-  gps_uart = mraa_uart_init_raw("/dev/ttyMFD2");
+  gps_uart = mraa_uart_init_raw("/dev/ttyMFD1");
   if (gps_uart == NULL) {
     fprintf(stderr, "UART failed to setup\n");
     return EXIT_FAILURE;
@@ -17,8 +17,8 @@ int gps_init() {
     fprintf(stderr, "No data available\n");
     return EXIT_FAILURE;
   }
-  gps_gpio = mraa_gpio_init(48);
-  mraa_gpio_dir(gps_gpio, MRAA_GPIO_IN);
+//  gps_gpio = mraa_gpio_init(48);
+//  mraa_gpio_dir(gps_gpio, MRAA_GPIO_IN);
 /*  char *cmd = "$PMTK220,100*2F";
   cmd[15] = <CR>;
   cmd[16] = <LF>;
@@ -133,7 +133,7 @@ int gps_chrtoint (char number) {
   }
 }
 
-int gps_fix() {
+/*int gps_fix() {
   int val;
   for (int i = 0; i < 20000; i++) {
     val = mraa_gpio_read(gps_gpio);
@@ -144,7 +144,7 @@ int gps_fix() {
     usleep(100);
   }
   return 1; //true: fix
-}
+}*/
 
 // http://rosettacode.org/wiki/Day_of_the_week#C
 /* Calculate day of week in proleptic Gregorian calendar. Sunday == 0. */

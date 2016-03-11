@@ -1,6 +1,6 @@
 #include <mraa.h>
 
-mraa_pwm_context pwm;
+mraa_pwm_context servo_pwm;
 
 int servo_ang; // -180 to 180
 

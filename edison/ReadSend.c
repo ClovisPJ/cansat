@@ -18,7 +18,7 @@
 int main (int argc, char **argv) {
 
     struct comms_Packet pck;
-    struct comms_Control ctrl;
+//    struct comms_Control ctrl;
 
     adxl345_init();
     bmpx8x_init(1, BMP085_ADDR, 3);
@@ -57,10 +57,7 @@ int main (int argc, char **argv) {
 
       pck.servo_ang = servo_ang;
 
-      if (gps_fix()) {
-        int ret = gps_get_nmea("$GPRMC");
-        if (ret == 3) printf("No fix (wire says otherwise)\n");
-        if (ret == -1) printf("NMEA sentence not receieved (wire unplugged?)\n");
+      if (gps_get_nmea("$GPRMC") == 0) {
         gps_get_nmea("$GPGGA");
 
         memcpy(pck.location, gps_location, 2*sizeof(float));
@@ -94,7 +91,7 @@ int main (int argc, char **argv) {
       fprintf(f, "%f,", pck.gas2);
       fprintf(f, "%d,", pck.servo_ang);
       struct tm mkify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
-      fprintf(f, "%s,", mktime(&ascify));
+      fprintf(f, "%d,", (uint32_t)(mktime(&mkify)));
       fprintf(f, "%f,", pck.location[0]);
       fprintf(f, "%f,", pck.location[1]);
       fprintf(f, "%f,", pck.speed);
@@ -117,13 +114,13 @@ int main (int argc, char **argv) {
       printf("humidity value = %f\n", pck.humidity); //+- 2%
       printf("temperature value = %f\n", pck.temperature2); //SD: 0.1 degC
       printf("compensated RH value = %f\n", pck.compRH);
-      printf("AIN0 is: %fV\n", gas1);
-      printf("AIN1 is: %fV\n", gas2);
+      printf("AIN0 is: %fV\n", pck.gas1);
+      printf("AIN1 is: %fV\n", pck.gas2);
       printf("servo angle: %d\n", pck.servo_ang);
       printf("latitude is: %f\n", pck.location[0]);
       printf("longitude is: %f\n", pck.location[1]);
       struct tm ascify = (struct tm){pck.time.tm_sec, pck.time.tm_min, pck.time.tm_hour, pck.time.tm_mday, pck.time.tm_mon, pck.time.tm_year, pck.time.tm_wday, pck.time.tm_yday};
-      printf("The time is: %s\n",asctime(&ascify));
+      printf("The time is: %s\n", asctime(&ascify));
       printf("ground speed: %f\n", pck.speed);
       printf("course: %f\n", pck.course);
       printf("fix quality: %d\n", pck.fix_quality);
@@ -134,17 +131,17 @@ int main (int argc, char **argv) {
 
       printf("\n\n");
 
-      char *p = comms_PackMessage(pck);
+//      char *p = comms_PackMessage(pck);
 //      mraa_gpio_isr_exit(irq_gpio);
-      rfm69_send(p, sizeof(struct comms_Packet));
-      free(p);
-
-//      int comms_pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
-//      int encodedwordlen = pow(2, comms_codelen-1);
-
-//      char *p = comms_EncodeMessage(conv.values);
-//      rfm69_send(p, (encodedwordlen*comms_pckcodes)/CHAR_BIT);
+//      rfm69_send(p, sizeof(struct comms_Packet));
 //      free(p);
+
+      int comms_pckcodes = (sizeof(struct comms_Packet)*CHAR_BIT)/comms_codelen;
+      int encodedwordlen = pow(2, comms_codelen-1);
+
+      char *p = comms_EncodeMessage(conv.values);
+      rfm69_send(p, (encodedwordlen*comms_pckcodes)/CHAR_BIT);
+      free(p);
 
 //      rfm69_rxmode(sizeof(struct comms_Control));
 //      mraa_gpio_isr(irq_gpio, MRAA_GPIO_EDGE_FALLING, control_received, NULL);

@@ -76,10 +76,7 @@ int main (int argc, char **argv) {
       ang = servo_ang;      
       printf("servo angle: %d\n", ang);
 
-      if (gps_fix()) {
-        int ret = gps_get_nmea("$GPRMC");
-        if (ret == 3) printf("No fix (wire says otherwise)\n");
-        if (ret == -1) printf("NMEA sentence not receieved (wire unplugged?)\n");
+      if (gps_get_nmea("$GPRMC") == 0) {
         gps_get_nmea("$GPGGA");
 
         memcpy(location, gps_location, 2*sizeof(float));

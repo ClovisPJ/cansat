@@ -168,3 +168,9 @@ char *rfm69_receive(int len) {
 
   return payload;
 }
+
+uint8_t rfm69_temperature() {
+  rfm69_write_reg(0x4E, 0b00001001);
+  while((rfm69_read_reg(0x4E) & 0b00000100) == 0);
+  return (rfm69_read_reg(0x4F) - 90);
+}
