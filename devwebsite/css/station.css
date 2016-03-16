@@ -1,18 +1,22 @@
 html{
   overflow: hidden;
+//  background-color: rgba(45, 116, 255, 0.2);
+}
+
+main{
+  margin: 2%;
 }
 
 #googleMap{
   position: absolute;
-  height: 50%;
+  height: 48%;
   width: 30%;
-  right: 0;
-  left: 70%;
+  left: 68%;
 }
 
 #charts{
   position: absolute;
-  width: 70%;
+  width: 66%;
   height: 100%;
 }
 
@@ -25,15 +29,15 @@ html{
 }
 
 #humidity{
-  height: 33%;
+  height: 32%;
 }
 
-#temperature{
-  height: 33%;
+#barometrics{
+  height: 32%;
 }
 
-#velocity{
-  height: 33%;
+#mechanics{
+  height: 32%;
 }
 
 #co{

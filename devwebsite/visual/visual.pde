@@ -1,5 +1,5 @@
 void setup() {
-  size(500,500,P3D);
+  size(400,400,P3D);
   background(255);
   lights();
   frameRate(1);
@@ -12,10 +12,15 @@ void draw() {
   String data[] = split(lines[lines.length-1], ',');
   //rotateX(map(mouseX, 0, 500, 0, 2*PI));
   //rotateY(map(mouseY, 0, 500, 0, 2*PI));
-  rotateX(-PI/8);
+  rotateX(-16*PI/8);
   rotateY(PI/4);
   cylinder(50, 200, 32);
-  arrow(float(data[0]), float(data[1]), float(data[2]));
+  arrow(float(data[0])*30, float(data[1])*30, float(data[2])*30);
+/*  textSize(10);
+  text(data[0], 10, 10);
+  text(data[1], 20, 10);
+  text(data[2], 30, 10);
+*/
 }
 
 void cylinder(float radius, float height, float res) {

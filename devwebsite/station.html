@@ -12,35 +12,24 @@
     <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
     <script type="text/javascript" src="js/chart.js"></script>
 
+    <script src="https://raw.githubusercontent.com/processing-js/processing-js/v1.4.8/processing.js"></script> 
+    
   </head>
   <body>
-    <header>
-      <div class="header-box" id="header-home">
-        <a href="index.html#home" class="header-box-link">&nbspHOME&nbsp</a>
-      </div>
-      <div class="header-box" id="header-about">
-        <a href="index.html#about" class="header-box-link">&nbspABOUT&nbsp</a>
-        <a href="index.html#team" class="header-box-link">&nbspTEAM&nbsp</a>
-      </div>
-      <div class="header-box" id="header-contact">
-        <a href="index.html#contact" class="header-box-link">&nbspCONTACT&nbsp</a>
-      </div>
-      <div class="header-box" id="header-work">
-        <a href="index.html#work" class="header-box-link">&nbspWORK&nbsp</a>
-      </div>
-    </header>
 
     <main>
       <div id="charts">
         <div id="humidity"></div>
-        <div id="temperature"></div>
-        <div id="velocity"></div>
+        <div id="barometrics"></div>
+        <div id="mechanics"></div>
       </div>
       <div id="gauges">
-        <div id="co"></div>
+        <!--div id="co"></div-->
+        <canvas data-processing-sources="visual/visual.pde"></canvas>
       </div>
       <div id="googleMap"></div>
     </main>
+
   </body>
 
 </html>
